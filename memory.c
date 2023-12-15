@@ -53,7 +53,11 @@ memory memory_create(size_t size) {
 }
 
 size_t memory_get_size(memory mem) {
-    return 0;
+    if (!mem) {
+        warning("null reference to mem\n");
+        return 0;
+    }
+    return mem->size;
 }
 
 void memory_destroy(memory mem) {
@@ -64,7 +68,12 @@ void memory_destroy(memory mem) {
 }
 
 int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
+    if (!mem) {
+        return -NULL_REFERENCE;
+    }
+
     return -1;
+
 }
 
 int memory_read_half(memory mem, uint32_t address, uint16_t *value, uint8_t be) {
