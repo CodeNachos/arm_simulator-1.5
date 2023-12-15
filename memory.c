@@ -26,14 +26,33 @@ Contact: Guillaume.Huard@imag.fr
 
 #include "werror.h"
 
+/**
+ * SIMULATED MEMORY
+ * addresses ranging from 0 to size-1
+ * 
+ * data: uint8_t array
+ * size: memory size in bytes
+*/
 struct memory_data {
     uint8_t* data;
     size_t size;
 };
 
+#define _check_mem_integrity(mem) \
+do { \
+    if (!mem) { \
+        error("null reference to memory\n"); \
+        return NULL_REFERENCE; \
+    } \
+    if (!(mem->data && mem->size > 0)) { \
+        error("simulated memory corrupted\n"); \
+        return DATA_CORRUPTED; \
+    } \
+} while (0)
+
 memory memory_create(size_t size) {
-    if (size == 0) {
-        warning("memory size is 0,  returning NULL\n");
+    if (size <= 0) {
+        warning("Invalid memory size %ld \n", size);
         return NULL;
     }
 
@@ -54,7 +73,10 @@ memory memory_create(size_t size) {
 
 size_t memory_get_size(memory mem) {
     if (!mem) {
-        warning("null reference to mem\n");
+        warning("null reference to memory passed as parameter\n");
+        return 0;
+    } else if (!(mem->data && mem->data > 0)) {
+        warning("simulated memory corrupted\n");
         return 0;
     }
     return mem->size;
@@ -68,30 +90,137 @@ void memory_destroy(memory mem) {
 }
 
 int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
-    if (!mem) {
-        return -NULL_REFERENCE;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size) { 
+        error("address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
     }
 
-    return -1;
+    *value = mem->data[address];
+    return SUCCESS;
 
 }
 
 int memory_read_half(memory mem, uint32_t address, uint16_t *value, uint8_t be) {
-    return -1;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size-1) { 
+        error("half word address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
+    } 
+
+    uint16_t aux = 0;
+    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
+    switch ((uint8_t)(be == is_big_endian()))   // check if be is sytem convention
+    {
+    case 0: // false inverse value
+        aux |= ((uint16_t)(mem->data[address++])) << 8;
+        aux |= (uint16_t)(mem->data[address]);
+        break;
+    case 1: // true read value directly
+        aux = ((uint16_t*)(mem->data))[address];
+        break;
+    default:
+        error("Invalid be value");
+        return FAILURE;
+    } 
+    *value = aux;
+    return SUCCESS;
 }
 
 int memory_read_word(memory mem, uint32_t address, uint32_t *value, uint8_t be) {
-    return -1;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size-3) { 
+        error("word address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
+    } 
+
+    uint32_t aux = 0;
+    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
+    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
+    {
+    case 0: // false inverse value
+        for (int i = 0; i < 4; i++) {
+            aux |= ((uint32_t)(mem->data[address+i])) << ((3-i)*8);
+        }
+        break;
+    case 1: // true read value directly
+        aux = ((uint32_t*)(mem->data))[address];
+        break;
+    default:
+        error("Invalid be value");
+        return FAILURE;
+    }
+    *value = aux;
+    return SUCCESS;
 }
 
 int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
-    return -1;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size) { 
+        error("address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
+    }
+
+    mem->data[address] = value;
+    return SUCCESS;
 }
 
 int memory_write_half(memory mem, uint32_t address, uint16_t value, uint8_t be) {
-    return -1;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size-1) { 
+        error("half word address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
+    }
+
+    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
+    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
+    {
+    case 0: // false inverse value
+        mem->data[address++] = (uint8_t)(value >> 8);
+        mem->data[address] = (uint8_t)(value);
+        break;
+    case 1: // true write value directly
+        ((uint16_t*)(mem->data))[address] = value;
+        break;
+    default:
+        error("Invalid be value");
+        return FAILURE;
+    }
+
+    return SUCCESS;
+
 }
 
 int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be) {
-    return -1;
+    _check_mem_integrity(mem);
+
+    if (address < 0 || address >= mem->size-3) { 
+        error("word address out of range\n"); 
+        return INDEX_OUT_OF_RANGE; 
+    }
+
+    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
+    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
+    {
+    case 0: // false inverse value
+        for (int i = 0; i < 4; i++) {
+            mem->data[address+i] = (uint8_t)(value >> (3-i)*8);
+        }
+        break;
+    case 1: // true write value directly
+        ((uint32_t*)(mem->data))[address] = value;
+        // aux = ((uint32_t*)(mem->data))[address];
+        break;
+    default:
+        error("Invalid be value");
+        return FAILURE;
+    }
+
+    return SUCCESS;
+
 }

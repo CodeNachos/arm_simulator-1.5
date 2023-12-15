@@ -1,2 +1,5 @@
 15/12: Started completing memory.c
-15/12: Created werror.h file to print and raise errors or warnings
+15/12: Created werror.h file to manage errors and warnings
+15/12: Documenting memory.h and memory.c
+15/12: Completed memory.c however some of the times (not always) i return
+        memory_test i get the error: AddressSanitizer:DEADLYSIGNAL
