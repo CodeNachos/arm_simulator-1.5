@@ -120,7 +120,7 @@ int main() {
     memory_write_half(m, 0, half_value, 1 - my_endianess);
     print_test(compare_with_sim(&half_value, m, 2, 1));
 
-    //memory_destroy(m);
+        memory_destroy(m);
 
     return 0;
 }
