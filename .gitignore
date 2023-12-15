@@ -1,0 +1,7 @@
+.vscode/settings.json
+Makefile
+.deps/*.Po
+*.Po
+config.log
+config.status
+stamp-h1

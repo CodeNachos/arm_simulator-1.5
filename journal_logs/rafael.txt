@@ -1,0 +1,2 @@
+15/12: Started completing memory.c
+15/12: Created werror.h file to print and raise errors or warnings
