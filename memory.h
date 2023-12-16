@@ -99,8 +99,38 @@ int memory_read_half(memory mem, uint32_t address, uint16_t * value, uint8_t be)
 */
 int memory_read_word(memory mem, uint32_t address, uint32_t * value, uint8_t be);
 
+/**
+ * Write byte value at given address
+ * 
+ * @param mem: memory type instance
+ * @param address: valid address in mem
+ * @param value: byte value to be stored
+ * @return 0 in case of success, a positive erro code if failure
+*/
 int memory_write_byte(memory mem, uint32_t address, uint8_t value);
+
+/**
+ * Write 16-bit value to given address using be endianess convetion
+ * @param mem: memory type instance
+ * @param address: valid address in mem
+ * @param value: 16-bit value to be stored
+ * @param be: endianness mode
+ * @return 0 in case of success, a positive erro code if failure
+ * @warning any positive value for be is treated as big-endian and 0 for 
+ * little-endianes
+*/
 int memory_write_half(memory mem, uint32_t address, uint16_t value, uint8_t be);
+
+/**
+ * Write 32-bit value to given address using be endianess convetion
+ * @param mem: memory type instance
+ * @param address: valid address in mem
+ * @param value: 32-bit value to be stored
+ * @param be: endianness mode
+ * @return 0 in case of success, a positive erro code if failure
+ * @warning any positive value for be is treated as big-endian and 0 for 
+ * little-endianes
+*/
 int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be);
 
 #endif
