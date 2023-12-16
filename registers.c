@@ -43,7 +43,7 @@ Contact: Guillaume.Huard@imag.fr
 //example, be able to access the value at that register (mode : user), or not(mode: supervisor).
 //The registers concerned are (r8-14).
 
-//The SPSR'S, even though they're banked registers, do have duplicated. However, in the ARM5V architecture,
+//The SPSR'S are banked registers. However, in the ARM5V architecture,
 //it is indicated that SPSR is only applied to exception modes, so there exists 5 of them.
 
 //As specified in the ARMv5 documentation, there are 7 modes:
@@ -65,18 +65,26 @@ struct registers_data{
     //Indices from 0 to 4 are reserved to r8_user - r12_user.
     //Indices from 5 to 9 are reserved to r8_fiq - r12_fiq.
     uint32_t *banked_r8_r12;
-    //Other banked registers for r13-r14. Each mode has its own physical register for each r13/r14 register.
+    //Other banked registers for r13-r14. Each mode has its own physical register for each r13/r14 register (except User and System, which share the same).
     //A total of 12 banked registers.
-    //each pairwise indices represent r13 and r14 in a mode (0-r13_user, 1-r14_user, 2-r13_sys, 3-r14_sys...)
+    //each pairwise indices represent r13 and r14 in a mode (0-r13_user, 1-r14_user, 2-r13_fiq, 3-r14_fiq...)
     uint32_t *banked_r13_r14;
     // Value of CPSR register:
     uint32_t CPSR;
     //Value of Program Counter:
     uint32_t PC;
 
-    //Table containning values of the status registers: (also 32 bits)
+    //Table containning values of the status registers: (SPSR)
     uint32_t *rstat;
 };
+//We see that the sum of registers:
+//-Unbanked = 8
+//-Banked r8-12 = 10
+//-Banked r13-r14 = 12
+//-CPSR
+//-PC
+//rstat = 5 (5 SPSR registers depending on the mode)
+// = 37. So we're good.
 
 //Method 'registers_create' which creates a pointer to our data_register structure:
 //Parameters: none
@@ -88,7 +96,7 @@ registers registers_create() {
     // If failed:
     if (r == NULL)
         return r;
-    //Allocation of 9 general registers (r0-r8):
+    //Allocation of 8 general registers (r0-r7):
     r->rUnbancked = (uint32_t *)malloc(sizeof(uint32_t) * UNBANKED_REG);
     //If failed:
     if(r->rUnbancked==NULL) 
@@ -186,8 +194,8 @@ uint8_t registers_get_mode(registers r) {
 static int registers_mode_has_spsr(registers r, uint8_t mode) {
 //NOTE: Remember, the only modes that have an SPSR associated to them are the Exception modes,
 //which are Supervisor, Abort, Undefined, IRQ, fast_IRQ.
-//From the ARM5v documentation, the binary values 0b10000 and 0b11111 are those associated to User and System.
-//So we basically check whether the mode is different from these values or not. (we also save SPSR accordingly)
+//From the ARM5v documentation, we obtain the binary values associated with each mode.
+//We therefore try to match it with the one given as parameter. (we also save SPSR accordingly)
 //If the mode is any of the values:
     switch(mode)
     {
@@ -225,6 +233,7 @@ int registers_current_mode_has_spsr(registers r)
 //Return : boolean int indicating whether true or false
 int registers_in_a_privileged_mode(registers r) {
     uint8_t mode = registers_get_mode(r);
+    //If the mode is any of fast_interrupt,interrupt, supervisor,abort,undefined or system, we return supervisor
     switch(mode){
         case FIQ:
         case IRQ:
@@ -234,6 +243,7 @@ int registers_in_a_privileged_mode(registers r) {
         case SYS:
             return SVC;
         default:
+            // else we return 0;
             return 0;
     }
 }
@@ -256,11 +266,11 @@ uint32_t registers_read(registers r, uint8_t reg, uint8_t mode)
         //We only need to deal with two modes (FIQ and anything else)
         if(mode!=FIQ)
         {
-            value = r->banked_r8_r12[reg - 8];
+            value = r->banked_r8_r12[reg - 8]; //ri with i belonging to [[0,4]] is any mode except fiq
         }
         else
         {
-            value = r->banked_r8_r12[reg - 8 + 5];
+            value = r->banked_r8_r12[reg - 8 + 5]; //ri with i belonging to [[5,9]] is fiq mode (ri_fiq)
         }
     }
     else if (reg>=13 && reg<=14)
@@ -318,7 +328,7 @@ uint32_t registers_read_spsr(registers r, uint8_t mode) {
 //-rstat[1] = spsr_IRQ
 //-rstat[2] = spsr_SUPERVISOR
 //-rstat[3] = spsr_ABORT
-//rstat[4] = spsr_UNDEFINED
+//-rstat[4] = spsr_UNDEFINED
     uint32_t value = 0;
     switch(mode)
     {
@@ -359,11 +369,11 @@ void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value) {
         //We only need to deal with two modes (FIQ and anything else)
         if(mode!=FIQ)
         {
-            r->banked_r8_r12[reg - 8] = value;
+            r->banked_r8_r12[reg - 8] = value; //ri with i belonging to [[0,4]] is any mode except fiq
         }
         else
         {
-            r->banked_r8_r12[reg - 8 + 5] = value;
+            r->banked_r8_r12[reg - 8 + 5] = value; //ri with i belonging to [[5,9]] is fiq mode (ri_fiq)
         }
     }
     else if (reg>=13 && reg<=14)
