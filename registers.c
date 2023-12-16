@@ -24,17 +24,10 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_constants.h"
 #include <stdlib.h>
 
-#define UNBANKED_REG 9
+#define UNBANKED_REG 8
 #define BANKED_R8_R12 10
 #define BANKED_R13_R14 12
 #define STAT_REG 5
-#define USER 0b10000
-#define FIQ 0b10001
-#define IRQ 0b10010
-#define SUPERVISOR 0b10011
-#define ABORT 0b10111
-#define UNDEFINED 0b11011
-#define SYSTEM 0b11111
 
 
 // Based on the ARMv5 documentation, this ARM version contains a grand total of 37 registers:
@@ -74,11 +67,13 @@ struct registers_data{
     uint32_t *banked_r8_r12;
     //Other banked registers for r13-r14. Each mode has its own physical register for each r13/r14 register.
     //A total of 12 banked registers.
-    //Indices 0 to 5 are reserved to r13 and all its modes (r13_user, r13_sys, etc..) and the rest 
-    //for r14 and its modes.
+    //each pairwise indices represent r13 and r14 in a mode (0-r13_user, 1-r14_user, 2-r13_sys, 3-r14_sys...)
     uint32_t *banked_r13_r14;
     // Value of CPSR register:
     uint32_t CPSR;
+    //Value of Program Counter:
+    uint32_t PC;
+
     //Table containning values of the status registers: (also 32 bits)
     uint32_t *rstat;
 };
@@ -129,6 +124,9 @@ registers registers_create() {
 
     // Initialize CPSR register:
     r->CPSR = 0;
+
+    //Initialize PC register:
+    r->PC = 0;
 
     //Allocation of SPSR registers:
     r->rstat = (uint32_t *)malloc(sizeof(uint32_t) * STAT_REG);
@@ -200,13 +198,13 @@ static int registers_mode_has_spsr(registers r, uint8_t mode) {
         case IRQ: //(r->stat[1] is SPSR_IRQ)
             r->rstat[1] = r->CPSR;
             return 1;
-        case SUPERVISOR: //(r->stat[2] is SPSR_SUPERVISOR)
+        case SVC: //(r->stat[2] is SPSR_SUPERVISOR)
             r->rstat[2] = r->CPSR;
             return 1;
-        case ABORT: //(r->stat[3] is SPSR_ABORT)
+        case ABT: //(r->stat[3] is SPSR_ABORT)
             r->rstat[3] = r->CPSR;
             return 1;
-        case UNDEFINED: //(r->stat[4] is SPSR_UNDEFINED)
+        case UND: //(r->stat[4] is SPSR_UNDEFINED)
             r->rstat[4] = r->CPSR;
             return 1;
         default:
@@ -230,44 +228,217 @@ int registers_in_a_privileged_mode(registers r) {
     switch(mode){
         case FIQ:
         case IRQ:
-        case SUPERVISOR:
-        case ABORT:
-        case UNDEFINED:
-        case SYSTEM:
+        case SVC:
+        case ABT:
+        case UND:
+        case SYS:
             return SVC;
         default:
             return 0;
     }
 }
 
-//Method 'registers_read' which reads the value of a reg given the current mode:
-//Parameters: registers r, uint8_t reg, 
-uint32_t registers_read(registers r, uint8_t reg, uint8_t mode) {
+// Method 'registers_read' which reads the value of a reg given the current mode:
+// Parameters: registers r, uint8_t reg, uint8_t mode
+// Returns: The value at register reg or 0 if mode doesn't exist
+uint32_t registers_read(registers r, uint8_t reg, uint8_t mode)
+{
     uint32_t value = 0;
-    /* � compl�ter... */
+    //If the register is UNBANKED
+    if(reg>=0 && reg<=7)
+    {
+        //Then we don't care about the mode
+        value = r->rUnbancked[reg];
+    }
+    //Else if it is between r8-r12
+    else if(reg>=8 && reg<=12)
+    {
+        //We only need to deal with two modes (FIQ and anything else)
+        if(mode!=FIQ)
+        {
+            value = r->banked_r8_r12[reg - 8];
+        }
+        else
+        {
+            value = r->banked_r8_r12[reg - 8 + 5];
+        }
+    }
+    else if (reg>=13 && reg<=14)
+    {
+        switch(mode)
+        {
+            case USR:
+                value = r->banked_r13_r14[reg - 13]; //r13_user and r14_user
+                break;
+            case FIQ:
+                value = r->banked_r13_r14[reg - 13 + 2]; //r13_fiq and r14_fiq
+                break;
+            case IRQ:
+                value = r->banked_r13_r14[reg - 13 + 4]; //r13_irq and r14_riq
+                break;
+            case SVC:
+                value = r->banked_r13_r14[reg - 13 + 6]; //r13_svc and r14_svc
+                break;
+            case ABT:
+                value = r->banked_r13_r14[reg- 13 + 8]; //r13_abort and r14_abort
+            case UND:
+                value = r->banked_r13_r14[reg -13 + 10]; //r13_undefined and r14_undefined
+                break;
+            case SYS:
+                value = r->banked_r13_r14[reg - 13]; //r13_sys and r14_sys, sys and user share the same registers.
+                break;
+            default:
+                value = value;
+            }
+    }
+    //Reg = 15, so PC
+    else
+    {
+        value = r->PC;
+    }
+
     return value;
 }
 
-uint32_t registers_read_cpsr(registers r) {
-    uint32_t value = 0;
-    /* � compl�ter... */
+// Method 'registers_read_cpsr' which lets us read the value at cpsr
+//Parameters: registers r
+//Return: Value of CPSR
+uint32_t registers_read_cpsr(registers r)
+{
+    uint32_t value = r->CPSR;
     return value;
 }
 
+//method 'registers_read_spsr' which lets us read the value at spsr, given the mode.
+//Parameters: registers r, uint8_t mode
+//Return: value at SPSR_mode if exists, 0 else
 uint32_t registers_read_spsr(registers r, uint8_t mode) {
+//REMINDER:
+//-rstat[0] = spsr_FIQ
+//-rstat[1] = spsr_IRQ
+//-rstat[2] = spsr_SUPERVISOR
+//-rstat[3] = spsr_ABORT
+//rstat[4] = spsr_UNDEFINED
     uint32_t value = 0;
-    /* � compl�ter... */
+    switch(mode)
+    {
+        case FIQ:
+            value = r->rstat[0];
+            break;
+        case IRQ:
+            value = r->rstat[1];
+            break;
+        case SVC:
+            value = r->rstat[2];
+            break;
+        case ABT:
+            value = r->rstat[3];
+            break;
+        case UND:
+            value = r->rstat[4];
+            break;
+        default:
+            value = 0;
+        }
     return value;
 }
 
+//method 'registers_write' which writes in a register r given the mode a certain value.
+//Parameters: registers r, uint8_t reg, uint8_t mode, uint32_t value
+//return : void 
 void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value) {
-    /* � compl�ter... */
+    //if register is UNBANCKED
+    if(reg>=0 && reg<=7)
+    {
+        //then we don't care about the mode
+        r->rUnbancked[reg] = value;
+    }
+    //Else if it is between r8-r12
+    else if(reg>=8 && reg<=12)
+    {
+        //We only need to deal with two modes (FIQ and anything else)
+        if(mode!=FIQ)
+        {
+            r->banked_r8_r12[reg - 8] = value;
+        }
+        else
+        {
+            r->banked_r8_r12[reg - 8 + 5] = value;
+        }
+    }
+    else if (reg>=13 && reg<=14)
+    {
+        switch(mode)
+        {
+            case USR:
+                r->banked_r13_r14[reg - 13] = value; //r13_user and r14_user
+                break;
+            case FIQ:
+                r->banked_r13_r14[reg - 13 + 2] = value; //r13_fiq and r14_fiq
+                break;
+            case IRQ:
+                r->banked_r13_r14[reg - 13 + 4] = value; //r13_irq and r14_riq
+                break;
+            case SVC:
+                r->banked_r13_r14[reg - 13 + 6] = value; //r13_svc and r14_svc
+                break;
+            case ABT:
+                r->banked_r13_r14[reg- 13 + 8] = value; //r13_abort and r14_abort
+            case UND:
+                r->banked_r13_r14[reg -13 + 10] = value; //r13_undefined and r14_undefined
+                break;
+            case SYS:
+                r->banked_r13_r14[reg - 13] = value; //r13_sys and r14_sys, sys and user share the same registers.
+                break;
+            default:
+                value = value;
+            }
+    }
+    //Reg = 15, so PC
+    else
+    {
+        r->PC = value;
+    }
+    return;
 }
 
+//Method 'registers_write_cpsr' which writes a value in the register CPSR
+//Parameter: registers r, uint32_t value
+//return: nothing
 void registers_write_cpsr(registers r, uint32_t value) {
-    /* � compl�ter... */
+    r->CPSR = value;
+    return;
 }
 
+//Method 'registers_write_spsr' which writes a value in the register SPSR
+//Paramaters: registers r, uint8_t mode, uint32_t value
+//Return: nothing
 void registers_write_spsr(registers r, uint8_t mode, uint32_t value) {
-    /* � compl�ter... */
+    //REMINDER:
+//-rstat[0] = spsr_FIQ
+//-rstat[1] = spsr_IRQ
+//-rstat[2] = spsr_SUPERVISOR
+//-rstat[3] = spsr_ABORT
+//rstat[4] = spsr_UNDEFINED
+    switch(mode)
+    {
+        case FIQ:
+            r->rstat[0] = value;
+            break;
+        case IRQ:
+            r->rstat[1] = value;
+            break;
+        case SVC:
+            r->rstat[2] = value;
+            break;
+        case ABT:
+            r->rstat[3] = value;
+            break;
+        case UND:
+            r->rstat[4] = value;
+            break;
+        default:
+            value = value;
+        }
+    return;
 }

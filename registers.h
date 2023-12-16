@@ -40,10 +40,6 @@ void registers_destroy(registers r);
 // Method 'registers_get_mode' which returns the mode in which we're in.
 uint8_t registers_get_mode(registers r);
 
-//Method 'registers_mode_has_spsr' which returns a boolean indicating whether the mode we're in has
-//SPSR or not.
-static int registers_mode_has_spsr(registers r, uint8_t mode);
-
 // Method 'registers_current_mode_has_spsr' to determine whether the current mode has an spsr or not:
 int registers_current_mode_has_spsr(registers r);
 
@@ -52,10 +48,19 @@ int registers_in_a_privileged_mode(registers r);
 
 //Method 'registers_read' which reads the value of a reg given the current mode
 uint32_t registers_read(registers r, uint8_t reg, uint8_t mode);
+
+// Method 'registers_read_cpsr' which lets us read the value at cpsr
 uint32_t registers_read_cpsr(registers r);
+
+//method 'registers_read_spsr' which lets us read the value at spsr, given the mode.
 uint32_t registers_read_spsr(registers r, uint8_t mode);
+
+//method 'registers_write' which writes in a register r given the mode a certain value.
 void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value);
+//Method 'registers_write_cpsr' which writes a value in the register CPSR
 void registers_write_cpsr(registers r, uint32_t value);
+
+//Method 'registers_write_spsr' which writes a value in the register SPSR
 void registers_write_spsr(registers r, uint8_t mode, uint32_t value);
 
 #endif
