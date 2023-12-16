@@ -214,7 +214,6 @@ int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be) 
         break;
     case 1: // true write value directly
         ((uint32_t*)(mem->data))[address] = value;
-        // aux = ((uint32_t*)(mem->data))[address];
         break;
     default:
         error("Invalid be value");
