@@ -1,1 +1,2 @@
 15/12: started working on registers.c
+16/12: Finished working on registers.c
