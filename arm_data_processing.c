@@ -68,60 +68,6 @@ Contact: Guillaume.Huard@imag.fr
 #define BIC 14
 #define MVN 15
 
-/* Check the condition according to the status */
-int arm_exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit) {
-	switch (cond) {
-	case EQ:
-		return Z_bit;
-		break;
-	case NE:
-		return !Z_bit;
-		break;
-	case HS:
-		return C_bit;
-		break;
-	case LO:
-		return !C_bit;
-		break;
-	case MI:
-		return N_bit;
-		break;
-	case PL:
-		return !N_bit;
-		break;
-	case VS:
-		return V_bit;
-		break;
-	case VC:
-		return !V_bit;
-		break;
-	case HI:
-		return C_bit && !Z_bit;
-		break;
-	case LS:
-		return !C_bit && Z_bit;
-		break;
-	case GE:
-		return N_bit == V_bit;
-		break;
-	case LT:
-		return N_bit != V_bit;
-		break;
-	case GT:
-		return !Z_bit && (N_bit == V_bit);
-		break;
-	case LE:
-		return Z_bit || (N_bit != V_bit);
-		break;
-	case AL: 
-		return 1;
-		break;
-	default: // cond = 0b1111. ARMv5 said this is also an unconditional execution
-		return 1;
-		break;
-	}
-}
-
 uint32_t decode_immediate_operand(uint16_t shifter_operand_code) {
 	return 0;
 }
@@ -139,7 +85,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t V_bit = get_bit(current_CPSR, V);
 
 	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
-	if (!exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
+	if (!arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
 		return SUCCESSFULLY_DECODED;
 
 	uint8_t instr = (ins & INSTR_MASK) >> INSTR_INDEX;
