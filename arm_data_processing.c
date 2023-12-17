@@ -42,12 +42,18 @@ Contact: Guillaume.Huard@imag.fr
 #define RN_MASK ((uint32_t)0xF << 16)
 #define RD_MASK ((uint32_t)0xF << 12)
 #define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
+#define SHIFT_IMM_MASK ((uint32_t)0b11111 << 7)
+#define RM_MASK (uint32_t)0xF
+#define RS_MASK ((uint32_t)0xF << 8)
 
 /* data processing instruction's indexes */
 #define OPCODE_INDEX 21
 #define RN_INDEX 16
 #define RD_INDEX 12
 #define SHIFTER_OPERAND_INDEX 0
+#define SHIFT_IMM_INDEX 7
+#define RM_INDEX 0
+#define RS_INDEX 8
 
 /* data processing information bits */
 #define I 25
@@ -96,22 +102,25 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t S_bit = get_bit(ins, S);
 	uint8_t opcode = (ins & OPCODE_MASK) >> OPCODE_INDEX;
 	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
+	uint32_t Rn_value = arm_read_register(p, Rn);
 	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
+	uint32_t Rd_value = arm_read_register(p, Rd);
 	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
+	uint8_t rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
+	uint32_t byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
+	uint8_t shift_imm = (ins & SHIFT_IMM_MASK) >> SHIFT_IMM_INDEX;
+	uint8_t Rm = (ins & RM_MASK) >> RM_INDEX;
+	uint32_t Rm_value = arm_read_register(p, Rm);
+	uint8_t Rs = (ins & RS_MASK) >> RS_INDEX;
+	uint32_t Rs_value = arm_read_register(p, Rs);
+	uint8_t Rs_valueLB = Rs_value & 0xFF;
 	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
-	uint8_t rotate_imm;
-	uint32_t byte_immediate;
-	uint8_t shift_imm;
-	uint8_t Rs;
-	uint8_t Rm;
 	uint32_t result;
 	
 
 	/* CALCULATE THE FUCKING SHIFTER OPERAND HOLY FUCK */
 	if (I_bit) {
-		rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
-		byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
 		shifter_operand = ror(byte_immediate, rotate_imm * 2);
 		if (rotate_imm == 0)
 			shifter_carry_out = C_bit;
@@ -120,31 +129,55 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	} else if ((shifter_operand_code & (0b111 << 4)) == 0) {
 		// lsl by immediate
 		if (shift_imm == 0) { /* register operand */
-			shifter_operand = arm_read_register(p, Rm);
+			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
 		} else {
-			shifter_operand = arm_read_register(p, Rm) << shift_imm;
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), 32 - shift_imm);
+			shifter_operand = Rm_value << shift_imm;
+			shifter_carry_out = get_bit(Rm_value, 32 - shift_imm);
 		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (1 << 4)) {
 		// lsl by register
-
+		if (Rs_valueLB == 0) {
+			shifter_operand = Rm_value;
+			shifter_carry_out = C_bit;
+		} else if (Rs_valueLB < 32) {
+			shifter_operand = Rm_value << Rs_valueLB;
+			shifter_carry_out = get_bit(Rm_value, 32 - Rs_valueLB);
+		} else if (Rs_valueLB == 32) {
+			shifter_operand = 0;
+			shifter_carry_out = get_bit(Rm_value, 0);
+		} else { /* Rs_valueLB > 32 */
+			shifter_operand = 0;
+			shifter_carry_out = 0;
+		}
 	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 5)) {
 		// lsr by immediate
 		if (shift_imm == 0) {
 			shifter_operand = 0;
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), 31);
+			shifter_carry_out = get_bit(Rm_value, 31);
 		} else {
-			shifter_operand = arm_read_register(p, Rm) >> shift_imm;
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+			shifter_operand = Rm_value >> shift_imm;
+			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b11 << 4)) {
 		// lsr by register
-
+		if (Rs_valueLB == 0) {
+			shifter_operand = Rm_value;
+			shifter_carry_out = C_bit;
+		} else if (Rs_valueLB < 32) {
+			shifter_operand = Rm_value >> Rs_valueLB;
+			shifter_carry_out = get_bit(Rm_value, Rs_valueLB - 1);
+		} else if (Rs_valueLB == 32) {
+			shifter_operand = 0;
+			shifter_carry_out = get_bit(Rm_value, 31);
+		} else { /* Rs_valueLB > 32 */
+			shifter_operand = 0;
+			shifter_carry_out = 0;
+		}
 	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 6)) {
 		// asr by immediate
 		if (shift_imm == 0) {
-			if (get_bit(arm_read_register(p, Rm), 31) == 0) {
+			if (get_bit(Rm_value, 31) == 0) {
 				shifter_operand = 0;
 				shifter_carry_out = 0;
 			} else {
@@ -152,24 +185,47 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 				shifter_carry_out = 1;
 			}
 		} else {
-			shifter_operand = asr(arm_read_register(p, Rm), shift_imm);
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+			shifter_operand = asr(Rm_value, shift_imm);
+			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b101 << 4)) {
 		// asr by register
-
+		if (Rs_valueLB == 0) {
+			shifter_operand = Rm_value;
+			shifter_carry_out = C_bit;
+		} else if (Rs_valueLB < 32) {
+			shifter_operand = asr(Rm_value, Rs_valueLB);
+			shifter_carry_out = get_bit(Rm_value, Rs_valueLB - 1);
+		} else { /* Rs_valueLB > 32 */
+			if (get_bit(Rm_value, 31) == 0) {
+				shifter_operand = 0;
+				shifter_carry_out = 0;
+			} else { /* Rm[31] == 1 */
+				shifter_operand = 0xFFFFFFFF;
+				shifter_carry_out = 1;
+			}
+		}
 	} else if ((shifter_operand_code & (0b111 << 4)) == (0b11 << 5)) {
 		// rotate right by immediate
 		if (shift_imm == 0) { /* rotate right with extend */
-			shifter_operand = ((uint32_t)C_bit << 31) | (arm_read_register(p, Rm) >> 1);
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), 0);
+			shifter_operand = ((uint32_t)C_bit << 31) | (Rm_value >> 1);
+			shifter_carry_out = get_bit(Rm_value, 0);
 		} else {
-			shifter_operand = ror(arm_read_register(p, Rm), shift_imm);
-			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+			shifter_operand = ror(Rm_value, shift_imm);
+			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b111 << 4)) {
 		// rotate right by register
-
+		if (Rs_valueLB == 0) {
+			shifter_operand = Rm_value;
+			shifter_carry_out = C_bit;
+		} else if ((Rs_valueLB & 0b11111) == 0) {
+			shifter_operand = Rm_value;
+			shifter_carry_out = get_bit(Rm_value, 31);
+		} else { /* Rs_valueLB > 32 */
+			shifter_operand = ror(Rm_value, (Rs_valueLB & 0b11111));
+			shifter_carry_out = get_bit(Rm_value, (Rs_valueLB & 0b11111) - 1);
+		}
 	} else
 		return UNDEFINED_INSTRUCTION;
 
@@ -236,8 +292,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		} else
 			return UNDEFINED_INSTRUCTION;
 	} else if (S_bit) {
-		arm_data_processing_immediate_msr(p, 0x000000000); // to complete
-		return SUCCESSFULLY_DECODED;
+		ins = 0xE328F200 | (N_bit << 3) | (Z_bit << 2) | (C_bit << 1) | V_bit;
+		return arm_data_processing_immediate_msr(p, ins);
 	} else 
 		return SUCCESSFULLY_DECODED;
 }
@@ -273,7 +329,6 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		byte_mask |= 0xFF000000;
 	
 	uint32_t mask;
-	uint32_t current_SPSR;
 
 	if (R_bit == 0) {
 		if (arm_in_a_privileged_mode(p)) {
@@ -288,7 +343,6 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	} else { // R == 1
 		if (arm_current_mode_has_spsr(p)) {
 			mask = byte_mask & (UserMask | PrivMask | StateMask);
-			current_SPSR = arm_read_spsr(p);
 			arm_write_spsr(p, (arm_read_spsr(p) & ~mask) | (operand & mask));
 			return SUCCESSFULLY_DECODED;
 		} else
