@@ -1,24 +1,24 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T ï¿½ but pï¿½dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique Gï¿½nï¿½rale GNU publiï¿½e par la Free Software
+Foundation (version 2 ou bien toute autre version ultï¿½rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribuï¿½ car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but spï¿½cifique. Reportez-vous ï¿½ la
+Licence Publique Gï¿½nï¿½rale GNU pour plus de dï¿½tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir reï¿½u une copie de la Licence Publique Gï¿½nï¿½rale GNU en mï¿½me
+temps que ce programme ; si ce n'est pas le cas, ï¿½crivez ï¿½ la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+ï¿½tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 Bï¿½timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'Hï¿½res
 */
 #include "arm_data_processing.h"
 #include "arm_exception.h"
@@ -26,10 +26,170 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "util.h"
 #include "debug.h"
+#include "werror.h"
+
+/* Check the condition according to the status */
+int exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit) {
+	switch (cond) {
+	case EQ:
+		return Z_bit;
+		break;
+	case NE:
+		return !Z_bit;
+		break;
+	case HS:
+		return C_bit;
+		break;
+	case LO:
+		return !C_bit;
+		break;
+	case MI:
+		return N_bit;
+		break;
+	case PL:
+		return !N_bit;
+		break;
+	case VS:
+		return V_bit;
+		break;
+	case VC:
+		return !V_bit;
+		break;
+	case HI:
+		return C_bit && !Z_bit;
+		break;
+	case LS:
+		return !C_bit && Z_bit;
+		break;
+	case GE:
+		return N_bit == V_bit;
+		break;
+	case LT:
+		return N_bit != V_bit;
+		break;
+	case GT:
+		return !Z_bit && (N_bit == V_bit);
+		break;
+	case LE:
+		return Z_bit || (N_bit != V_bit);
+		break;
+	case AL: 
+		return 1;
+		break;
+	default: // cond = 0b1111. ARMv5 said this is also an unconditional execution
+		return 1;
+		break;
+	}
+}
+
+uint32_t decode_immediate_operand(uint16_t shifter_operand_code) {
+	return 0;
+}
+
+uint32_t decode_register_based_operand(uint16_t shifter_operand_code) {
+	return 0;
+}
 
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+	uint32_t current_CPSR = arm_read_cpsr(p);
+	uint8_t N_bit = (current_CPSR & ((uint32_t)1 << N)) >> N;
+	uint8_t Z_bit = (current_CPSR & ((uint32_t)1 << Z)) >> Z;
+	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
+	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
+
+	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
+	if (!exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
+		return SUCCESSFULLY_DECODED;
+
+	uint8_t instr = (ins & INSTR_MASK) >> INSTR_INDEX;
+	if (instr != 0)
+		raise(UNDEFINED_BEHAVIOUR, "arm_data_processing_shift: Instruction code is not of the data processing type.\n");
+	
+	uint8_t I_bit = (ins & I_MASK) >> I_INDEX;
+	uint8_t opcode = (ins & OPCODE_MASK) >> OPCODE_INDEX;
+	uint8_t S_bit = (ins & S_MASK) >> S_INDEX;
+	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
+	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
+	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
+	uint32_t shifter_operand_value;
+	uint32_t result;
+	
+	if (I_bit)
+		shifter_operand_value = decode_immediate_operand(shifter_operand_code);
+	else
+		if ((shifter_operand_code & (1 << 7)) && (shifter_operand_code & (1 << 4)))
+			return UNDEFINED_INSTRUCTION;
+		else
+			shifter_operand_value = decode_register_based_operand(shifter_operand_code);
+
+	switch (opcode) {
+	case AND:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case EOR:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case SUB:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case RSB:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case ADD:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case ADC:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case SBC:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case RSC:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case TST:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case TEQ:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case CMP:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case CMN:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case ORR:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case MOV:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case BIC:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	case MVN:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	default:
+		return UNDEFINED_INSTRUCTION;
+		break;
+	}
+
+	arm_write_register(p, Rd, result);
+
+	if (S_bit && Rd == 15) {
+		if (arm_current_mode_has_spsr(p)) {
+			arm_write_cpsr(p, arm_read_spsr(p));
+			return SUCCESSFULLY_DECODED;
+		} else
+			return UNDEFINED_INSTRUCTION;
+	} else if (S_bit) {
+		arm_data_processing_immediate_msr(p, 0x000000000); // to complete
+		return SUCCESSFULLY_DECODED;
+	} else 
+		return SUCCESSFULLY_DECODED;
 }
 
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {

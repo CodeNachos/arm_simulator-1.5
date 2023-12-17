@@ -1,24 +1,24 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T ï¿½ but pï¿½dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique Gï¿½nï¿½rale GNU publiï¿½e par la Free Software
+Foundation (version 2 ou bien toute autre version ultï¿½rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribuï¿½ car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but spï¿½cifique. Reportez-vous ï¿½ la
+Licence Publique Gï¿½nï¿½rale GNU pour plus de dï¿½tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir reï¿½u une copie de la Licence Publique Gï¿½nï¿½rale GNU en mï¿½me
+temps que ce programme ; si ce n'est pas le cas, ï¿½crivez ï¿½ la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+ï¿½tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 Bï¿½timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'Hï¿½res
 */
 #ifndef __ARM_CONSTANTS_H__
 #define __ARM_CONSTANTS_H__
@@ -32,6 +32,9 @@ Contact: Guillaume.Huard@imag.fr
 #define ABT 0x17
 #define UND 0x1b
 #define SYS 0x1f
+
+/* Normal executation output */
+#define SUCCESSFULLY_DECODED 0
 
 /* ARM Exceptions (by priority) */
 #define RESET                   1
@@ -59,6 +62,61 @@ Contact: Guillaume.Huard@imag.fr
 #define LSR 1
 #define ASR 2
 #define ROR 3
+
+/* conditions */
+#define EQ 0
+#define NE 1
+#define HS 2
+#define LO 3
+#define MI 4
+#define PL 5
+#define VS 6
+#define VC 7
+#define HI 8
+#define LS 9
+#define GE 10
+#define LT 11
+#define GT 12
+#define LE 13
+#define AL 14
+
+/* data processing instructions */
+#define AND 0
+#define EOR 1
+#define SUB 2
+#define RSB 3
+#define ADD 4
+#define ADC 5
+#define SBC 6
+#define RSC 7
+#define TST 8
+#define TEQ 9
+#define CMP 10
+#define CMN 11
+#define ORR 12
+#define MOV 13
+#define BIC 14
+#define MVN 15
+
+/* data processing instruction's masks */
+#define COND_MASK ((uint32_t)0xF << 28)
+#define INSTR_MASK ((uint32_t)3 << 26)
+#define I_MASK ((uint32_t)1 << 25)
+#define OPCODE_MASK ((uint32_t)0xF << 21)
+#define S_MASK ((uint32_t)1 << 20)
+#define RN_MASK ((uint32_t)0xF << 16)
+#define RD_MASK ((uint32_t)0xF << 12)
+#define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
+
+/* data processing instruction's indexes */
+#define COND_INDEX 28
+#define INSTR_INDEX 26
+#define I_INDEX 25
+#define OPCODE_INDEX 21
+#define S_INDEX 20
+#define RN_INDEX 16
+#define RD_INDEX 12
+#define SHIFTER_OPERAND_INDEX 0
 
 /* Bit mask constants for msr */
 /* We simulate architecture v5T */
