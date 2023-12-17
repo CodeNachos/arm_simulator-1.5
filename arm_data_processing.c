@@ -68,14 +68,6 @@ Contact: Guillaume.Huard@imag.fr
 #define BIC 14
 #define MVN 15
 
-uint32_t decode_immediate_operand(uint16_t shifter_operand_code) {
-	return 0;
-}
-
-uint32_t decode_register_based_operand(uint16_t shifter_operand_code) {
-	return 0;
-}
-
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
@@ -98,17 +90,17 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
 	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
 	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
-	uint32_t shifter_operand_value;
+	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
 	uint32_t result;
 	
 	if (I_bit)
-		shifter_operand_value = decode_immediate_operand(shifter_operand_code);
+		shifter_operand = 0;
 	else
 		if (get_bit(shifter_operand_code, 7) && get_bit(shifter_operand_code, 4))
 			return UNDEFINED_INSTRUCTION;
 		else
-			shifter_operand_value = decode_register_based_operand(shifter_operand_code);
+			shifter_operand = 0;
 
 	switch (opcode) {
 	case AND:
