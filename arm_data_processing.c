@@ -86,6 +86,22 @@ Contact: Guillaume.Huard@imag.fr
 /* immediate msr's information bit */
 #define R 22
 
+int add_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_add_overflow(a, b, result);
+}
+
+int add_carry(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_add_overflow(a, b, result) || (*result < a);
+}
+
+int sub_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_sub_overflow(a, b, result);
+}
+
+int sub_carry(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_sub_overflow(a, b, result) || (*result > a);
+}
+
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
@@ -104,7 +120,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
 	uint32_t Rn_value = arm_read_register(p, Rn);
 	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
-	uint32_t Rd_value = arm_read_register(p, Rd);
 	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
 	uint8_t rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
 	uint32_t byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
@@ -116,7 +131,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Rs_valueLB = Rs_value & 0xFF;
 	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
-	uint32_t result;
+	uint32_t result, tmp;
+	int change_Rd;
 	
 
 	/* CALCULATE THE FUCKING SHIFTER OPERAND HOLY FUCK */
@@ -231,59 +247,110 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 
 	switch (opcode) {
 	case AND:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value & shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	case EOR:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value ^ shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	case SUB:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value - shifter_operand;
+		C_bit = sub_carry(Rn_value, shifter_operand, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 1;
 		break;
 	case RSB:
-		return UNDEFINED_INSTRUCTION;
+		result = shifter_operand - Rn_value;
+		C_bit = sub_carry(shifter_operand, Rn_value, &result);
+		V_bit = sub_overflow(shifter_operand, Rn_value, &result);
+		change_Rd = 1;
 		break;
 	case ADD:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value + shifter_operand;
+		C_bit = add_carry(Rn_value, shifter_operand, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 1;
 		break;
 	case ADC:
-		return UNDEFINED_INSTRUCTION;
+		tmp = Rn_value + shifter_operand;
+		result = tmp + C_bit;
+		C_bit = add_carry(Rn_value, shifter_operand, &tmp) || 
+				add_carry(tmp, C_bit, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &tmp) || 
+				add_overflow(tmp, C_bit, &result);
+		change_Rd = 1;
 		break;
 	case SBC:
-		return UNDEFINED_INSTRUCTION;
+		tmp = Rn_value - shifter_operand;
+		result = tmp - !C_bit;
+		C_bit = sub_carry(Rn_value, shifter_operand, &tmp) || 
+				sub_carry(tmp, !C_bit, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &tmp) || 
+				sub_overflow(tmp, !C_bit, &result);
+		change_Rd = 1;
 		break;
 	case RSC:
-		return UNDEFINED_INSTRUCTION;
+		tmp = shifter_operand - Rn_value;
+		result = tmp - !C_bit;
+		C_bit = sub_carry(shifter_operand, Rn_value, &tmp) || 
+				sub_carry(tmp, !C_bit, &result);
+		V_bit = sub_overflow(shifter_operand, Rn_value, &tmp) || 
+				sub_overflow(tmp, !C_bit, &result);
+		change_Rd = 1;
 		break;
 	case TST:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value & shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 0;
 		break;
 	case TEQ:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value ^ shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 0;
 		break;
 	case CMP:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value - shifter_operand;
+		C_bit = sub_carry(Rn_value, shifter_operand, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 0;
 		break;
 	case CMN:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value + shifter_operand;
+		C_bit = add_carry(Rn_value, shifter_operand, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 0;
 		break;
 	case ORR:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value | shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	case MOV:
-		return UNDEFINED_INSTRUCTION;
+		result = shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	case BIC:
-		return UNDEFINED_INSTRUCTION;
+		result = Rn_value & ~shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	case MVN:
-		return UNDEFINED_INSTRUCTION;
+		result = ~shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
 		break;
 	default:
 		return UNDEFINED_INSTRUCTION;
 		break;
 	}
-
-	arm_write_register(p, Rd, result);
+	N_bit = get_bit(result, 31);
+	Z_bit = (result == 0);
+	if (change_Rd)
+		arm_write_register(p, Rd, result);
 
 	if (S_bit && Rd == 15) {
 		if (arm_current_mode_has_spsr(p)) {
