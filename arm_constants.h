@@ -80,44 +80,6 @@ Contact: Guillaume.Huard@imag.fr
 #define LE 13
 #define AL 14
 
-/* data processing instructions */
-#define AND 0
-#define EOR 1
-#define SUB 2
-#define RSB 3
-#define ADD 4
-#define ADC 5
-#define SBC 6
-#define RSC 7
-#define TST 8
-#define TEQ 9
-#define CMP 10
-#define CMN 11
-#define ORR 12
-#define MOV 13
-#define BIC 14
-#define MVN 15
-
-/* data processing instruction's masks */
-#define COND_MASK ((uint32_t)0xF << 28)
-#define INSTR_MASK ((uint32_t)3 << 26)
-#define I_MASK ((uint32_t)1 << 25)
-#define OPCODE_MASK ((uint32_t)0xF << 21)
-#define S_MASK ((uint32_t)1 << 20)
-#define RN_MASK ((uint32_t)0xF << 16)
-#define RD_MASK ((uint32_t)0xF << 12)
-#define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
-
-/* data processing instruction's indexes */
-#define COND_INDEX 28
-#define INSTR_INDEX 26
-#define I_INDEX 25
-#define OPCODE_INDEX 21
-#define S_INDEX 20
-#define RN_INDEX 16
-#define RD_INDEX 12
-#define SHIFTER_OPERAND_INDEX 0
-
 /* Bit mask constants for msr */
 /* We simulate architecture v5T */
 #define UnallocMask 0x0FFFFF00
