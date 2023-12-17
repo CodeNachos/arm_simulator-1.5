@@ -3,6 +3,7 @@ Makefile
 .deps/*.Po
 *.Po
 config.log
+config.h
 config.status
 stamp-h1
 autom4te.cache/
