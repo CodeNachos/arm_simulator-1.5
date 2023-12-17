@@ -26,102 +26,81 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "util.h"
 #include "debug.h"
-#include "werror.h"
 
-/* Check the condition according to the status */
-int exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit) {
-	switch (cond) {
-	case EQ:
-		return Z_bit;
-		break;
-	case NE:
-		return !Z_bit;
-		break;
-	case HS:
-		return C_bit;
-		break;
-	case LO:
-		return !C_bit;
-		break;
-	case MI:
-		return N_bit;
-		break;
-	case PL:
-		return !N_bit;
-		break;
-	case VS:
-		return V_bit;
-		break;
-	case VC:
-		return !V_bit;
-		break;
-	case HI:
-		return C_bit && !Z_bit;
-		break;
-	case LS:
-		return !C_bit && Z_bit;
-		break;
-	case GE:
-		return N_bit == V_bit;
-		break;
-	case LT:
-		return N_bit != V_bit;
-		break;
-	case GT:
-		return !Z_bit && (N_bit == V_bit);
-		break;
-	case LE:
-		return Z_bit || (N_bit != V_bit);
-		break;
-	case AL: 
-		return 1;
-		break;
-	default: // cond = 0b1111. ARMv5 said this is also an unconditional execution
-		return 1;
-		break;
-	}
-}
+/* data processing instruction code */
+#define INSTR_CODE 0
 
-uint32_t decode_immediate_operand(uint16_t shifter_operand_code) {
-	return 0;
-}
+/* data processing instruction's masks */
+#define COND_MASK ((uint32_t)0xF << 28)
+#define INSTR_MASK ((uint32_t)3 << 26)
+#define OPCODE_MASK ((uint32_t)0xF << 21)
+#define RN_MASK ((uint32_t)0xF << 16)
+#define RD_MASK ((uint32_t)0xF << 12)
+#define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
 
-uint32_t decode_register_based_operand(uint16_t shifter_operand_code) {
-	return 0;
-}
+/* data processing instruction's indexes */
+#define COND_INDEX 28
+#define INSTR_INDEX 26
+#define OPCODE_INDEX 21
+#define RN_INDEX 16
+#define RD_INDEX 12
+#define SHIFTER_OPERAND_INDEX 0
+
+/* data processing information bits */
+#define I 25
+#define S 20
+
+/* data processing instructions */
+#define AND 0
+#define EOR 1
+#define SUB 2
+#define RSB 3
+#define ADD 4
+#define ADC 5
+#define SBC 6
+#define RSC 7
+#define TST 8
+#define TEQ 9
+#define CMP 10
+#define CMN 11
+#define ORR 12
+#define MOV 13
+#define BIC 14
+#define MVN 15
 
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
-	uint8_t N_bit = (current_CPSR & ((uint32_t)1 << N)) >> N;
-	uint8_t Z_bit = (current_CPSR & ((uint32_t)1 << Z)) >> Z;
-	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
-	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
+	uint8_t N_bit = get_bit(current_CPSR, N);
+	uint8_t Z_bit = get_bit(current_CPSR, Z);
+	uint8_t C_bit = get_bit(current_CPSR, C);
+	uint8_t V_bit = get_bit(current_CPSR, V);
 
 	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
-	if (!exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
+	if (!arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
 		return SUCCESSFULLY_DECODED;
 
 	uint8_t instr = (ins & INSTR_MASK) >> INSTR_INDEX;
-	if (instr != 0)
-		raise(UNDEFINED_BEHAVIOUR, "arm_data_processing_shift: Instruction code is not of the data processing type.\n");
+	if (instr != INSTR_CODE)
+		return UNDEFINED_INSTRUCTION;
 	
-	uint8_t I_bit = (ins & I_MASK) >> I_INDEX;
+	uint8_t I_bit = get_bit(ins, I);
+	uint8_t S_bit = get_bit(ins, S);
 	uint8_t opcode = (ins & OPCODE_MASK) >> OPCODE_INDEX;
-	uint8_t S_bit = (ins & S_MASK) >> S_INDEX;
 	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
 	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
 	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
-	uint32_t shifter_operand_value;
+	uint32_t shifter_operand;
+	uint8_t shifter_carry_out;
 	uint32_t result;
 	
 	if (I_bit)
-		shifter_operand_value = decode_immediate_operand(shifter_operand_code);
+		shifter_operand = 0;
 	else
-		if ((shifter_operand_code & (1 << 7)) && (shifter_operand_code & (1 << 4)))
+		if (get_bit(shifter_operand_code, 7) && get_bit(shifter_operand_code, 4))
 			return UNDEFINED_INSTRUCTION;
 		else
-			shifter_operand_value = decode_register_based_operand(shifter_operand_code);
+			shifter_operand = 0;
 
 	switch (opcode) {
 	case AND:
