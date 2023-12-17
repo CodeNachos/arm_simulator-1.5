@@ -38,6 +38,8 @@ Contact: Guillaume.Huard@imag.fr
 #define INST_BR_MASK ((uint32_t)0x5 << INSTR_BR_INDEX)
 #define L_INDEX 24
 #define OFFSET_MASK (uint32_t)0x00FFFFFF
+#define SWI_INDEX 24
+#define SWI_MASK ((uint32_t)0xF << SWI_INDEX)
 
 int arm_branch(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
@@ -47,7 +49,7 @@ int arm_branch(arm_core p, uint32_t ins) {
 	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
 	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
 
-	// chack wether a condition is true for an instruction
+	// check wether a condition is true for an instruction
 	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
 	if(condition_passed){
 		uint8_t codeop = (ins & INST_BR_MASK) >> INSTR_BR_INDEX;
@@ -59,7 +61,6 @@ int arm_branch(arm_core p, uint32_t ins) {
 		}
 		else{
 			int L = get_bit(ins, L_INDEX); // bit of B or BL
-
 			uint32_t offset = ins & OFFSET_MASK; // get offset for branching
 			// extend value to an adress of branching, procedure is specified in manual
 			int sign_extention_bit = get_bit(offset, 24);
@@ -69,26 +70,52 @@ int arm_branch(arm_core p, uint32_t ins) {
 			offset = offset << 2;
 			if(L){
 				// linking
-				registers_write(p->reg, 14, registers_get_mode(p->reg), registers_read(p->reg, PC, registers_get_mode(p->reg)));
-				//????
+				arm_write_register(p, 14, arm_read_register(p, 15)); // LR <- PC
 			}
 			// branching
-			registers_write(p->reg, PC, registers_get_mode(p->reg), offset);
-			//????
+			arm_write_register(p, 15, offset); // PC <- adress
 			return SUCCESSFULLY_DECODED;
 		}
 	}
-	else 
+	else // condition blocked, skipping
     	return SUCCESSFULLY_DECODED;
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
-    if (get_bit(ins, 24)) {
-        return SOFTWARE_INTERRUPT;
-    }
-    return UNDEFINED_INSTRUCTION;
+	uint32_t current_CPSR = arm_read_cpsr(p);
+	uint8_t N_bit = (current_CPSR & ((uint32_t)1 << N)) >> N;
+	uint8_t Z_bit = (current_CPSR & ((uint32_t)1 << Z)) >> Z;
+	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
+	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
+	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
+
+	// check wether a condition is true for an instruction
+	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
+	if(condition_passed){
+		uint8_t codeop = (ins & SWI_MASK) >> SWI_INDEX;
+		if(codeop != 0xF)
+	    if (get_bit(ins, 24)) {
+        	return SOFTWARE_INTERRUPT;
+    	}
+    	return UNDEFINED_INSTRUCTION;
+	}
+	else // condition blocked, skipping
+		return SUCCESSFULLY_DECODED;
 }
 
 int arm_miscellaneous(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+	uint32_t current_CPSR = arm_read_cpsr(p);
+	uint8_t N_bit = (current_CPSR & ((uint32_t)1 << N)) >> N;
+	uint8_t Z_bit = (current_CPSR & ((uint32_t)1 << Z)) >> Z;
+	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
+	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
+	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
+
+	// check wether a condition is true for an instruction
+	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
+	if(condition_passed){
+		return UNDEFINED_INSTRUCTION;
+	}
+	else // condition blocked, skipping
+		return SUCCESSFULLY_DECODED;
 }
