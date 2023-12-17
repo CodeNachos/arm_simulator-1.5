@@ -69,7 +69,7 @@ Contact: Guillaume.Huard@imag.fr
 #define MVN 15
 
 /* Check the condition according to the status */
-int exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit) {
+int arm_exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit) {
 	switch (cond) {
 	case EQ:
 		return Z_bit;
