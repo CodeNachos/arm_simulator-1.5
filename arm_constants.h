@@ -108,6 +108,16 @@ Contact: Guillaume.Huard@imag.fr
 #define RD_MASK ((uint32_t)0xF << 12)
 #define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
 
+/* data processing instruction's indexes */
+#define COND_INDEX 28
+#define INSTR_INDEX 26
+#define I_INDEX 25
+#define OPCODE_INDEX 21
+#define S_INDEX 20
+#define RN_INDEX 16
+#define RD_INDEX 12
+#define SHIFTER_OPERAND_INDEX 0
+
 /* Bit mask constants for msr */
 /* We simulate architecture v5T */
 #define UnallocMask 0x0FFFFF00
