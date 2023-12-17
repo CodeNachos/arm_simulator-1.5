@@ -111,20 +111,13 @@ int memory_read_half(memory mem, uint32_t address, uint16_t *value, uint8_t be) 
     } 
 
     uint16_t aux = 0;
-    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
-    switch ((uint8_t)(be == is_big_endian()))   // check if be is sytem convention
-    {
-    case 0: // false inverse value
+    if (be) {
         aux |= ((uint16_t)(mem->data[address++])) << 8;
         aux |= (uint16_t)(mem->data[address]);
-        break;
-    case 1: // true read value directly
-        aux = ((uint16_t*)(mem->data))[address];
-        break;
-    default:
-        error("Invalid be value");
-        return FAILURE;
-    } 
+    } else {
+        aux |= (uint16_t)(mem->data[address++]);
+        aux |= ((uint16_t)(mem->data[address])) << 8;
+    }
     *value = aux;
     return SUCCESS;
 }
@@ -138,20 +131,14 @@ int memory_read_word(memory mem, uint32_t address, uint32_t *value, uint8_t be) 
     } 
 
     uint32_t aux = 0;
-    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
-    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
-    {
-    case 0: // false inverse value
+    if (be) {
         for (int i = 0; i < 4; i++) {
             aux |= ((uint32_t)(mem->data[address+i])) << ((3-i)*8);
         }
-        break;
-    case 1: // true read value directly
-        aux = ((uint32_t*)(mem->data))[address];
-        break;
-    default:
-        error("Invalid be value");
-        return FAILURE;
+    } else {
+        for (int i = 0; i < 4; i++) {
+            aux |= ((uint32_t)(mem->data[address+3-i])) << ((3-i)*8);
+        }
     }
     *value = aux;
     return SUCCESS;
@@ -176,22 +163,13 @@ int memory_write_half(memory mem, uint32_t address, uint16_t value, uint8_t be) 
         error("half word address out of range\n"); 
         return INDEX_OUT_OF_RANGE; 
     }
-
-    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
-    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
-    {
-    case 0: // false inverse value
+    if (be) {
         mem->data[address++] = (uint8_t)(value >> 8);
         mem->data[address] = (uint8_t)(value);
-        break;
-    case 1: // true write value directly
-        ((uint16_t*)(mem->data))[address] = value;
-        break;
-    default:
-        error("Invalid be value");
-        return FAILURE;
+    } else {
+        mem->data[address++] = (uint8_t)(value);
+        mem->data[address] = (uint8_t)(value >> 8);
     }
-
     return SUCCESS;
 
 }
@@ -204,20 +182,14 @@ int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be) 
         return INDEX_OUT_OF_RANGE; 
     }
 
-    be = (be > 0) ? MEM_BIG_ENDIAN : MEM_LITTLE_ENDIAN; // cast be to bool
-    switch ((uint8_t)(be == is_big_endian()))   // check if be is system convention
-    {
-    case 0: // false inverse value
+    if (be) {
         for (int i = 0; i < 4; i++) {
             mem->data[address+i] = (uint8_t)(value >> (3-i)*8);
         }
-        break;
-    case 1: // true write value directly
-        ((uint32_t*)(mem->data))[address] = value;
-        break;
-    default:
-        error("Invalid be value");
-        return FAILURE;
+    } else {
+        for (int i = 0; i < 4; i++) {
+            mem->data[address+i] = (uint8_t)(value >> (i*8));
+        }
     }
 
     return SUCCESS;
