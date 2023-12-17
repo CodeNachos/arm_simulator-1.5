@@ -25,23 +25,24 @@ Contact: Guillaume.Huard@imag.fr
 #include <stdint.h>
 #include "arm_core.h"
 
-
 /*
 	Branching instructions, there are the following types:
 	-- B: standard branching
 	-- BL: branch with link
-	-- BX: branch and exchange
-	-- BLX: branch with link and exchange
+
 	instruction is coded in the following format:
 	cond(4 bits) + 101 + L(bit) + 24 offset bits
 */
 int arm_branch(arm_core p, uint32_t ins);
+
 /*
 	Software interrupt exception instruction:
+
 	instruction is coded in the following format:
-	cond(4 bits) + 1111 + 24 bits immedeate
+	cond(4 bits) + 1111 + 24 bits SWI number
 */
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins);
+
 /*
 	Miscellaneous instructions, implemented:
 	Status register access:
@@ -49,6 +50,9 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins);
 	-- MSR: move general register to PSR
 	-- CPS: change proccessor state of CPSR
 	-- SETEND: set the endianess of the CPSR
+
+	instruction is coded in the following format:
+	?????????
 */
 int arm_miscellaneous(arm_core p, uint32_t ins);
 
