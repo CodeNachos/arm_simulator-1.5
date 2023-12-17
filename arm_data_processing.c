@@ -107,6 +107,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Rm;
 	uint32_t result;
 	
+
+	/* CALCULATE THE FUCKING SHIFTER OPERAND HOLY FUCK */
 	if (I_bit) {
 		rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
 		byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
@@ -117,7 +119,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			shifter_carry_out = get_bit(shifter_operand, 31);
 	} else if ((shifter_operand_code & (0b111 << 4)) == 0) {
 		// lsl by immediate
-		if (shift_imm == 0) {
+		if (shift_imm == 0) { /* register operand */
 			shifter_operand = arm_read_register(p, Rm);
 			shifter_carry_out = C_bit;
 		} else {
@@ -129,24 +131,44 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 
 	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 5)) {
 		// lsr by immediate
-
+		if (shift_imm == 0) {
+			shifter_operand = 0;
+			shifter_carry_out = get_bit(arm_read_register(p, Rm), 31);
+		} else {
+			shifter_operand = arm_read_register(p, Rm) >> shift_imm;
+			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b11 << 4)) {
 		// lsr by register
 
 	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 6)) {
 		// asr by immediate
-
+		if (shift_imm == 0) {
+			if (get_bit(arm_read_register(p, Rm), 31) == 0) {
+				shifter_operand = 0;
+				shifter_carry_out = 0;
+			} else {
+				shifter_operand = 0xFFFFFFFF;
+				shifter_carry_out = 1;
+			}
+		} else {
+			shifter_operand = asr(arm_read_register(p, Rm), shift_imm);
+			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b101 << 4)) {
 		// asr by register
 
 	} else if ((shifter_operand_code & (0b111 << 4)) == (0b11 << 5)) {
 		// rotate right by immediate
-
+		if (shift_imm == 0) { /* rotate right with extend */
+			shifter_operand = ((uint32_t)C_bit << 31) | (arm_read_register(p, Rm) >> 1);
+			shifter_carry_out = get_bit(arm_read_register(p, Rm), 0);
+		} else {
+			shifter_operand = ror(arm_read_register(p, Rm), shift_imm);
+			shifter_carry_out = get_bit(arm_read_register(p, Rm), shift_imm - 1);
+		}
 	} else if ((shifter_operand_code & (0xF << 4)) == (0b111 << 4)) {
 		// rotate right by register
-
-	} else if ((shifter_operand_code & (0xFF << 4)) == (0b11 << 5)) {
-		// rotate right with extend
 
 	} else
 		return UNDEFINED_INSTRUCTION;
