@@ -31,28 +31,24 @@ Contact: Guillaume.Huard@imag.fr
 	-- BL: branch with link
 
 	instruction is coded in the following format:
-	cond(4 bits) + 101 + L(bit) + 24 offset bits
+	cond(4 bits) + 101 + L(bit) + 24-bit offset value	
 */
 int arm_branch(arm_core p, uint32_t ins);
 
 /*
-	Software interrupt exception instruction:
+	Software interrupt exception raise instruction:
 
 	instruction is coded in the following format:
-	cond(4 bits) + 1111 + 24 bits SWI number
+	cond(4 bits) + 1111 + 24-bit ignored value
 */
-int arm_coprocessor_others_swi(arm_core p, uint32_t ins);
+int arm_coprocessor_others_swi(arm_core p, uint32_t ins); // doubt about this
 
 /*
-	Miscellaneous instructions, implemented:
+	Miscellaneous instructions, required:
 	Status register access:
 	-- MRS: move PSR to general register 
-	-- MSR: move general register to PSR
-	-- CPS: change proccessor state of CPSR
-	-- SETEND: set the endianess of the CPSR
-
 	instruction is coded in the following format:
-	?????????
+	cond(4 bits) + 00110 + R(1 bit) + 10 + field_mask(4 bits) + SBO(4 bits) + rotate_imm(4 bits) + 8_bit_immediate
 */
 int arm_miscellaneous(arm_core p, uint32_t ins);
 

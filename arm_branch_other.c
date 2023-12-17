@@ -34,12 +34,21 @@ Contact: Guillaume.Huard@imag.fr
 
 #define COND_INDEX 28 
 #define COND_MASK ((uint32_t)0xF << COND_INDEX)
+
 #define INSTR_BR_INDEX 25
 #define INST_BR_MASK ((uint32_t)0x5 << INSTR_BR_INDEX)
+#define BR_CODE 5
 #define L_INDEX 24
+
 #define OFFSET_MASK (uint32_t)0x00FFFFFF
 #define SWI_INDEX 24
 #define SWI_MASK ((uint32_t)0xF << SWI_INDEX)
+#define SWI_CODE 15
+
+#define MSR_INDEX 23
+#define MSR_MASK ((uint32_t)0xF8 << MSR_INDEX)
+#define MSR_IMM 4
+#define MSR_REG 2
 
 int arm_branch(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
@@ -55,9 +64,9 @@ int arm_branch(arm_core p, uint32_t ins) {
 		uint8_t codeop = (ins & INST_BR_MASK) >> INSTR_BR_INDEX;
 
 		// not a branching instruction code, raise an error
-		if(codeop != 5){
+		if(codeop != BR_CODE){
 			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a branching instruction.\n");
-			return UNDEFINED_INSTRUCTION;
+			return UNDEFINED_BEHAVIOUR;
 		}
 		else{
 			int L = get_bit(ins, L_INDEX); // bit of B or BL
@@ -93,11 +102,11 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
 	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
 	if(condition_passed){
 		uint8_t codeop = (ins & SWI_MASK) >> SWI_INDEX;
-		if(codeop != 0xF)
-	    if (get_bit(ins, 24)) {
-        	return SOFTWARE_INTERRUPT;
-    	}
-    	return UNDEFINED_INSTRUCTION;
+		if(codeop != SWI_CODE){
+			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not an SWI instruction.\n");
+			return UNDEFINED_BEHAVIOUR;
+		}
+		else return SOFTWARE_INTERRUPT;
 	}
 	else // condition blocked, skipping
 		return SUCCESSFULLY_DECODED;
@@ -110,11 +119,20 @@ int arm_miscellaneous(arm_core p, uint32_t ins) {
 	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
 	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
 	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
-
 	// check wether a condition is true for an instruction
 	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
 	if(condition_passed){
-		return UNDEFINED_INSTRUCTION;
+		uint8_t codeop = (ins & MSR_MASK) >> MSR_INDEX;
+		switch (codeop){
+		case MSR_IMM:
+		case MSR_REG:
+			
+			break;
+		default:
+			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a MSR instruction.\n");
+			return UNDEFINED_BEHAVIOUR;
+			break;
+		}
 	}
 	else // condition blocked, skipping
 		return SUCCESSFULLY_DECODED;
