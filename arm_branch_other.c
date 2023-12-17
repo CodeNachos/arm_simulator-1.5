@@ -45,10 +45,9 @@ Contact: Guillaume.Huard@imag.fr
 #define SWI_MASK ((uint32_t)0xF << SWI_INDEX)
 #define SWI_CODE 15
 
-#define MSR_INDEX 23
-#define MSR_MASK ((uint32_t)0xF8 << MSR_INDEX)
-#define MSR_IMM 4
-#define MSR_REG 2
+#define MRS_INDEX 23
+#define MRS_MASK ((uint32_t)0xF8 << MRS_INDEX)
+#define MRS_INSTR 2
 
 int arm_branch(arm_core p, uint32_t ins) {
 	uint32_t current_CPSR = arm_read_cpsr(p);
@@ -122,16 +121,13 @@ int arm_miscellaneous(arm_core p, uint32_t ins) {
 	// check wether a condition is true for an instruction
 	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
 	if(condition_passed){
-		uint8_t codeop = (ins & MSR_MASK) >> MSR_INDEX;
-		switch (codeop){
-		case MSR_IMM:
-		case MSR_REG:
-			
-			break;
-		default:
-			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a MSR instruction.\n");
+		uint8_t codeop = (ins & MRS_MASK) >> MRS_INDEX;
+		if(codeop != MRS_INSTR){
+			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a MRS instruction.\n");
 			return UNDEFINED_BEHAVIOUR;
-			break;
+		}
+		else{
+
 		}
 	}
 	else // condition blocked, skipping
