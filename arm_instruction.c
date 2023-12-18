@@ -27,58 +27,62 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "arm_constants.h"
 #include "util.h"
+#include "debug.h"
 
 int instruction_cond(arm_core p, uint32_t inst){ //la condition doit etre remplie afin d'executer l'instruction
     uint32_t code = inst >>28; 
-    uint32_t zncv= arm_read_cpsr(p);
+    uint32_t status= arm_read_cpsr(p);
     switch(code){
-    case 0x0:
-        return get_bit(zncv, Z)==1;
+    case EQ:
+        return get_bit(status, Z);
         break;
-    case 0x1:
-        return get_bit(zncv, Z)==0;
+    case NE:
+        return !get_bit(status, Z);
         break;
-    case 0x2:
-        return get_bit(zncv, C)==1;
+    case HS:
+        return get_bit(status, C);
         break;
-    case 0x3:
-        return get_bit(zncv, C)==0;
+    case LO:
+        return !get_bit(status, C);
         break;
-    case 0x4:
-        return get_bit(zncv, N)==1;
+    case MI:
+        return get_bit(status, N);
         break;
-    case 0x5:
-        return get_bit(zncv, N)==0;
+    case PL:
+        return !get_bit(status, N);
         break;
-    case 0x6:
-        return get_bit(zncv, V)==1;
+    case VS:
+        return get_bit(status, V);
         break;
-    case 0x7:
-        return get_bit(zncv, V)==0;
+    case VC:
+        return !get_bit(status, V);
         break;
-    case 0x8:
-        return (get_bit(zncv, C)==1 && get_bit(zncv, Z)==0);
+    case HI:
+        return (get_bit(status, C) && !get_bit(status, Z));
         break;
-    case 0x9:
-        return (get_bit(zncv, C)==0 || get_bit(zncv, Z)==1);
+    case LS:
+        return (!get_bit(status, C) || get_bit(status, Z));
         break;
-    case 0xA:
-        return (get_bit(zncv, N) == get_bit(zncv, V));
+    case GE:
+        return (get_bit(status, N) == get_bit(status, V));
         break;
-    case 0xB:
-        return (get_bit(zncv, N) != get_bit(zncv, V));
+    case LT:
+        return (get_bit(status, N) != get_bit(status, V));
         break;
-    case 0xC:
-        return get_bit(zncv, Z) ==0 && (get_bit(zncv, N)==get_bit(zncv, V));
+    case GT:
+        return !get_bit(status, Z) && (get_bit(status, N) == get_bit(status, V));
         break;
-    case 0xD:
-        return get_bit(zncv, Z) ==1 || (get_bit(zncv, N)!=get_bit(zncv, V));
+    case LE:
+        return get_bit(status, Z) || (get_bit(status, N) != get_bit(status, V));
         break;
-    case 0xE:
+    case AL:
         return 1;
-    break;
+        break;
+    default:
+        warnig("Undefined condition\n");
+        return 0;
+        break;
     }
-    return 0;
 }
 
 
