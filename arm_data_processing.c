@@ -70,11 +70,13 @@ int sub_carry(uint32_t a, uint32_t b, uint32_t *result) {
 
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
+	/* Read current flag */
 	uint32_t current_CPSR = arm_read_cpsr(p);
 	uint8_t N_bit = get_bit(current_CPSR, N);
 	uint8_t Z_bit = get_bit(current_CPSR, Z);
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
+	/* Decode instruction */
 	uint8_t I_bit = get_bit(ins, I);
 	uint8_t S_bit = get_bit(ins, S);
 	uint8_t opcode = get_bits(ins, 24, 21);
@@ -89,13 +91,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t Rm_value = arm_read_register(p, Rm);
 	uint8_t Rs = get_bits(ins, 11, 8);
 	uint32_t Rs_value = arm_read_register(p, Rs);
-	uint8_t Rs_valueLB = Rs_value & 0xFF;
+	uint8_t Rs_valueLB = Rs_value & 0xFF; // least significant byte
 	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
 	uint32_t result, tmp;
 	int change_Rd;
 
-	/* CALCULATE THE FUCKING SHIFTER OPERAND HOLY FUCK */
+	/* CALCULATE THE SHIFTER OPERAND */
 	if (I_bit) {
 		// immediate
 		shifter_operand = ror(immed_byte, rotate_imm * 2);
@@ -206,6 +208,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	} else
 		return UNDEFINED_INSTRUCTION;
 
+	/* CALCULATE RESULT BASED OPCODE */
 	switch (opcode) {
 	case AND:
 		result = Rn_value & shifter_operand;
@@ -308,11 +311,14 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		return UNDEFINED_INSTRUCTION;
 		break;
 	}
+	// Get the 2 other flags 
 	N_bit = get_bit(result, 31);
 	Z_bit = (result == 0);
+	// Write result in Rd if there is a need to
 	if (change_Rd)
 		arm_write_register(p, Rd, result);
 
+	/* CHANGE CPSR ACCORDING TO S */
 	if (S_bit && Rd == 15) {
 		if (arm_current_mode_has_spsr(p)) {
 			arm_write_cpsr(p, arm_read_spsr(p));
@@ -322,6 +328,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			return UNDEFINED_INSTRUCTION;
 		}
 	} else if (S_bit) {
+		// Write in CPSR using a call to msr
 		ins = 0xE328F200 | (N_bit << 3) | (Z_bit << 2) | (C_bit << 1) | V_bit;
 		return arm_data_processing_immediate_msr(p, ins);
 	} else 
@@ -334,12 +341,14 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	uint8_t rotate_imm = get_bits(ins, 11, 8);
 	uint32_t immed_byte = get_bits(ins, 7, 0);
 	
+	/* Operand is an rotation of an immediate byte */
 	uint32_t operand = ror(immed_byte, rotate_imm * 2);
 	if (operand & UnallocMask) {
 		warning("UNPREDICTABLE (Attempt to set reserved bits)\n");
 		return UNDEFINED_INSTRUCTION;
 	}
 
+	/* Choose what byte to modfiy according to field_mask */
 	uint32_t byte_mask = 0;
 	if (get_bit(field_mask, 0))
 		byte_mask |= 0x000000FF;
@@ -353,6 +362,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	uint32_t mask;
 
 	if (R_bit == 0) {
+		// Change CPSR according to operand, byte_mask and mode masks..
 		if (arm_in_a_privileged_mode(p)) {
 			if (operand & StateMask) {
 				warning("UNPREDICTABLE (Attempt to set non-ARM execution state)\n");
@@ -364,6 +374,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		arm_write_cpsr(p, (arm_read_cpsr(p) & ~mask) | (operand & mask));
 		return SUCCESSFULLY_DECODED;
 	} else { // R == 1
+		// Change SPSR according to operand, byte_mask and mode masks..
 		if (arm_current_mode_has_spsr(p)) {
 			mask = byte_mask & (UserMask | PrivMask | StateMask);
 			arm_write_spsr(p, (arm_read_spsr(p) & ~mask) | (operand & mask));
