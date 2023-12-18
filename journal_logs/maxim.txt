@@ -3,3 +3,4 @@
 17/12 Questions about SWI function, need to clarify
 18/12 SWI is clarified, it's done
 18/12 Working on arm_branch_other tests
+18/12 Done first version of branch module, still there are ideas on improvement
