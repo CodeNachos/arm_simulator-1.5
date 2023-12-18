@@ -24,9 +24,6 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_constants.h"
 #include "util.h"
 #include "arm_exception.h"
-#include "arm_constants.h"
-#include "util.h"
-#include "debug.h"
 #include "werror.h"
 
 #include <debug.h>
@@ -60,7 +57,7 @@ int arm_branch(arm_core p, uint32_t ins) {
 	else{
 		int L = get_bit(ins, 24); // bit of B or BL
 		uint32_t offset = ins & OFFSET_MASK; // get offset for branching
-		
+
 		// extend value to an adress of branching, procedure is specified in manual
 		int sign_extention_bit = get_bit(offset, 24);
 		if(sign_extention_bit){
@@ -101,8 +98,11 @@ int arm_miscellaneous(arm_core p, uint32_t ins){
 				arm_write_register(p, return_reg, arm_read_spsr(p));
 				return SUCCESSFULLY_DECODED;
 			} 
-			else // error, mode does not have SPSR
+			// error, mode does not have SPSR
+			else {
+				warning("UNPREDICTABLE (Attempt to use SPSR but current mode does not have SPSR)\n");
 				return UNDEFINED_INSTRUCTION;
+			}
 		}
 		else{ // R == 0 <=> read from CPSR
 			arm_write_register(p, return_reg, arm_read_cpsr(p));
