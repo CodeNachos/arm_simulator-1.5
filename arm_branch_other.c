@@ -36,7 +36,7 @@ Contact: Guillaume.Huard@imag.fr
 #define COND_MASK ((uint32_t)0xF << COND_INDEX)
 
 #define INSTR_BR_INDEX 25
-#define INST_BR_MASK ((uint32_t)0x5 << INSTR_BR_INDEX)
+#define INST_BR_MASK ((uint32_t)5 << INSTR_BR_INDEX)
 #define BR_CODE 5
 #define L_INDEX 24
 
@@ -46,7 +46,7 @@ Contact: Guillaume.Huard@imag.fr
 #define SWI_CODE 15
 
 #define MRS_INDEX 23
-#define MRS_MASK ((uint32_t)0xF8 << MRS_INDEX)
+#define MRS_MASK ((uint32_t)2 << MRS_INDEX)
 #define MRS_INSTR 2
 
 int arm_branch(arm_core p, uint32_t ins) {
@@ -118,16 +118,18 @@ int arm_miscellaneous(arm_core p, uint32_t ins) {
 	uint8_t C_bit = (current_CPSR & ((uint32_t)1 << C)) >> C;
 	uint8_t V_bit = (current_CPSR & ((uint32_t)1 << V)) >> V;
 	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
+
 	// check wether a condition is true for an instruction
 	int condition_passed = arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit);
 	if(condition_passed){
-		uint8_t codeop = (ins & MRS_MASK) >> MRS_INDEX;
+		uint8_t codeop = (ins & MRS_MASK) >> MRS_INDEX; // get the instruction code
+
+		// not an MSR instruction code, raise an error
 		if(codeop != MRS_INSTR){
 			raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a MRS instruction.\n");
-			return UNDEFINED_BEHAVIOUR;
 		}
 		else{
-
+			
 		}
 	}
 	else // condition blocked, skipping
