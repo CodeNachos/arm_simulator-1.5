@@ -1,0 +1,4 @@
+17/12 Started working on arm_branch_other module
+17/12 Done the branching function, started MRS and SWI
+17/12 Questions about SWI function, need to clarify
+18/12 SWI is clarified, it's done

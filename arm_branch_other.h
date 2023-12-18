@@ -46,9 +46,10 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins); // doubt about this
 /*
 	Miscellaneous instructions, required:
 	Status register access:
-	-- MRS: move PSR to general register 
+	-- MRS: move CPSR/SPCR to general register 
+
 	instruction is coded in the following format:
-	cond(4 bits) + 00110 + R(1 bit) + 10 + field_mask(4 bits) + SBO(4 bits) + rotate_imm(4 bits) + 8_bit_immediate
+	cond(4 bits) + 00010 + R(1 bit) + 00 + SBO(4 bits) + Rd(4 bits) + SBZ(12 bits)
 */
 int arm_miscellaneous(arm_core p, uint32_t ins);
 
