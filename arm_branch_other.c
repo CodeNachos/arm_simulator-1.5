@@ -31,7 +31,7 @@ Contact: Guillaume.Huard@imag.fr
 
 //macros for branching instructions
 #define BR_INDEX 25
-#define BR_MASK ((uint32_t)5 << BR_INDEX)
+#define BR_MASK ((uint32_t) 5 << BR_INDEX)
 #define BR_CODE 5
 #define OFFSET_MASK (uint32_t)0x00FFFFFF
 
@@ -60,18 +60,20 @@ int arm_branch(arm_core p, uint32_t ins) {
 		uint32_t offset = ins & OFFSET_MASK; // get offset for branching
 
 		// extend value to an adress of branching, procedure is specified in manual
-		int sign_extention_bit = get_bit(offset, 24);
+		int sign_extention_bit = get_bit(offset, 23);
 		if(sign_extention_bit){
-			offset|=0x3F000000;
+			offset = offset | 0x3F000000; // extend with values 1 to 30 bits
 		}
-		offset = offset << 2;
+		offset = offset << 2; // shift left by two
+
+		uint32_t temp_pc = arm_read_register(p, 15); // save pc
 
 		if(L){ // if L == 1, then BL
 			// linking
-			arm_write_register(p, 14, arm_read_register(p, 15)); // LR <- PC
+			arm_write_register(p, 14, temp_pc); // LR <- PC
 		}
 		// branching
-		arm_write_register(p, 15, offset); // PC <- adress
+		arm_write_register(p, 15, temp_pc+offset); // PC <- PC + offset
 		return SUCCESSFULLY_DECODED;
 	}
 }
@@ -83,7 +85,8 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins){
 		warning("UNPREDICTABLE (arm_branch: Instruction code is not an SWI instruction)\n");
 		return UNDEFINED_INSTRUCTION;
 	}
-	else return SOFTWARE_INTERRUPT;
+	else 
+		return SOFTWARE_INTERRUPT;
 }
 
 int arm_miscellaneous(arm_core p, uint32_t ins){
@@ -96,8 +99,9 @@ int arm_miscellaneous(arm_core p, uint32_t ins){
 	else{
 		int R_bit = get_bit(ins, 22); // get CPSR or SPSR
 		uint8_t return_reg = (ins & Rd_MASK) >> Rd_INDEX; // get the register to put data
+
 		if(R_bit){ // R == 1 <=> read from SPSR
-			if (arm_current_mode_has_spsr(p)) { //check wether getting SPSR is valid for current mode
+			if (arm_current_mode_has_spsr(p)) { //check wether getting SPSR is valid for the current mode
 				arm_write_register(p, return_reg, arm_read_spsr(p));
 				return SUCCESSFULLY_DECODED;
 			} 
