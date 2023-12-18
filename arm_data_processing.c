@@ -27,32 +27,6 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 
-/* general masks */
-#define ROTATE_IMM_MASK ((uint32_t)0xF << 8)
-#define BYTE_IMMEDIATE_MASK (uint32_t)0xFF
-
-/* general indexes */
-#define ROTATE_IMM_INDEX 8
-#define BYTE_IMMEDIATE_INDEX 0
-
-/* data processing instruction's masks */
-#define OPCODE_MASK ((uint32_t)0xF << 21)
-#define RN_MASK ((uint32_t)0xF << 16)
-#define RD_MASK ((uint32_t)0xF << 12)
-#define SHIFTER_OPERAND_MASK (uint32_t)0xFFF
-#define SHIFT_IMM_MASK ((uint32_t)0b11111 << 7)
-#define RM_MASK (uint32_t)0xF
-#define RS_MASK ((uint32_t)0xF << 8)
-
-/* data processing instruction's indexes */
-#define OPCODE_INDEX 21
-#define RN_INDEX 16
-#define RD_INDEX 12
-#define SHIFTER_OPERAND_INDEX 0
-#define SHIFT_IMM_INDEX 7
-#define RM_INDEX 0
-#define RS_INDEX 8
-
 /* data processing information bits */
 #define I 25
 #define S 20
@@ -74,12 +48,6 @@ Contact: Guillaume.Huard@imag.fr
 #define MOV 13
 #define BIC 14
 #define MVN 15
-
-/* immediate msr's masks */
-#define FIELD_MASK_MASK ((uint32_t)0xF << 16)
-
-/* immediate msr's indexes */
-#define FIELD_MASK_INDEX 16
 
 /* immediate msr's information bit */
 #define R 22
@@ -107,36 +75,35 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Z_bit = get_bit(current_CPSR, Z);
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
-	
 	uint8_t I_bit = get_bit(ins, I);
 	uint8_t S_bit = get_bit(ins, S);
-	uint8_t opcode = (ins & OPCODE_MASK) >> OPCODE_INDEX;
-	uint8_t Rn = (ins & RN_MASK) >> RN_INDEX;
+	uint8_t opcode = get_bits(ins, 24, 21);
+	uint8_t Rn = get_bits(ins, 19, 16);
 	uint32_t Rn_value = arm_read_register(p, Rn);
-	uint8_t Rd = (ins & RD_MASK) >> RD_INDEX;
-	uint16_t shifter_operand_code = (ins & SHIFTER_OPERAND_MASK) >> SHIFTER_OPERAND_INDEX;
-	uint8_t rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
-	uint32_t byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
-	uint8_t shift_imm = (ins & SHIFT_IMM_MASK) >> SHIFT_IMM_INDEX;
-	uint8_t Rm = (ins & RM_MASK) >> RM_INDEX;
+	uint8_t Rd = get_bits(ins, 15, 12);
+	uint16_t shifter_operand_code = get_bits(ins, 11, 0);
+	uint8_t rotate_imm = get_bits(ins, 11, 8);
+	uint32_t immed_byte = get_bits(ins, 7, 0);
+	uint8_t shift_imm = get_bits(ins, 11, 7);
+	uint8_t Rm = get_bits(ins, 3, 0);
 	uint32_t Rm_value = arm_read_register(p, Rm);
-	uint8_t Rs = (ins & RS_MASK) >> RS_INDEX;
+	uint8_t Rs = get_bits(ins, 11, 8);
 	uint32_t Rs_value = arm_read_register(p, Rs);
 	uint8_t Rs_valueLB = Rs_value & 0xFF;
 	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
 	uint32_t result, tmp;
 	int change_Rd;
-	
 
 	/* CALCULATE THE FUCKING SHIFTER OPERAND HOLY FUCK */
 	if (I_bit) {
-		shifter_operand = ror(byte_immediate, rotate_imm * 2);
+		// immediate
+		shifter_operand = ror(immed_byte, rotate_imm * 2);
 		if (rotate_imm == 0)
 			shifter_carry_out = C_bit;
-		else
+		else /* rotate_imm != 0 */
 			shifter_carry_out = get_bit(shifter_operand, 31);
-	} else if ((shifter_operand_code & (0b111 << 4)) == 0) {
+	} else if (get_bits(shifter_operand_code, 6, 4) == 0b000) {
 		// lsl by immediate
 		if (shift_imm == 0) { /* register operand */
 			shifter_operand = Rm_value;
@@ -145,7 +112,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			shifter_operand = Rm_value << shift_imm;
 			shifter_carry_out = get_bit(Rm_value, 32 - shift_imm);
 		}
-	} else if ((shifter_operand_code & (0xF << 4)) == (1 << 4)) {
+	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0001) {
 		// lsl by register
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
@@ -160,7 +127,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			shifter_operand = 0;
 			shifter_carry_out = 0;
 		}
-	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 5)) {
+	} else if (get_bits(shifter_operand_code, 6, 4) == 0b010) {
 		// lsr by immediate
 		if (shift_imm == 0) {
 			shifter_operand = 0;
@@ -169,7 +136,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			shifter_operand = Rm_value >> shift_imm;
 			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
-	} else if ((shifter_operand_code & (0xF << 4)) == (0b11 << 4)) {
+	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0011) {
 		// lsr by register
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
@@ -184,21 +151,21 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			shifter_operand = 0;
 			shifter_carry_out = 0;
 		}
-	} else if ((shifter_operand_code & (0b111 << 4)) == (1 << 6)) {
+	} else if (get_bits(shifter_operand_code, 6, 4) == 0b100) {
 		// asr by immediate
 		if (shift_imm == 0) {
 			if (get_bit(Rm_value, 31) == 0) {
 				shifter_operand = 0;
 				shifter_carry_out = 0;
-			} else {
+			} else { /* Rm[31] == 1 */
 				shifter_operand = 0xFFFFFFFF;
 				shifter_carry_out = 1;
 			}
-		} else {
+		} else { /* shift_imm > 0 */
 			shifter_operand = asr(Rm_value, shift_imm);
 			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
-	} else if ((shifter_operand_code & (0xF << 4)) == (0b101 << 4)) {
+	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0101) {
 		// asr by register
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
@@ -215,26 +182,26 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 				shifter_carry_out = 1;
 			}
 		}
-	} else if ((shifter_operand_code & (0b111 << 4)) == (0b11 << 5)) {
+	} else if (get_bits(shifter_operand_code, 6, 4) == 0b110) {
 		// rotate right by immediate
 		if (shift_imm == 0) { /* rotate right with extend */
 			shifter_operand = ((uint32_t)C_bit << 31) | (Rm_value >> 1);
 			shifter_carry_out = get_bit(Rm_value, 0);
-		} else {
+		} else { /* shift_imm > 0 */
 			shifter_operand = ror(Rm_value, shift_imm);
 			shifter_carry_out = get_bit(Rm_value, shift_imm - 1);
 		}
-	} else if ((shifter_operand_code & (0xF << 4)) == (0b111 << 4)) {
+	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0111) {
 		// rotate right by register
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
-		} else if ((Rs_valueLB & 0b11111) == 0) {
+		} else if (get_bits(Rs_value, 4, 0) == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = get_bit(Rm_value, 31);
-		} else { /* Rs_valueLB > 32 */
-			shifter_operand = ror(Rm_value, (Rs_valueLB & 0b11111));
-			shifter_carry_out = get_bit(Rm_value, (Rs_valueLB & 0b11111) - 1);
+		} else { /* Rs[4:0] > 32 */
+			shifter_operand = ror(Rm_value, get_bits(Rs_value, 4, 0));
+			shifter_carry_out = get_bit(Rm_value, get_bits(Rs_value, 4, 0) - 1);
 		}
 	} else
 		return UNDEFINED_INSTRUCTION;
@@ -350,8 +317,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		if (arm_current_mode_has_spsr(p)) {
 			arm_write_cpsr(p, arm_read_spsr(p));
 			return SUCCESSFULLY_DECODED;
-		} else
+		} else {
+			warning("UNPREDICTABLE (Attempt to use SPSR but current mode does not have SPSR)\n");
 			return UNDEFINED_INSTRUCTION;
+		}
 	} else if (S_bit) {
 		ins = 0xE328F200 | (N_bit << 3) | (Z_bit << 2) | (C_bit << 1) | V_bit;
 		return arm_data_processing_immediate_msr(p, ins);
@@ -360,24 +329,16 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 }
 
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
-	uint32_t current_CPSR = arm_read_cpsr(p);
-	uint8_t N_bit = get_bit(current_CPSR, N);
-	uint8_t Z_bit = get_bit(current_CPSR, Z);
-	uint8_t C_bit = get_bit(current_CPSR, C);
-	uint8_t V_bit = get_bit(current_CPSR, V);
-
-	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
-	if (!arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
-		return SUCCESSFULLY_DECODED;
-	
 	uint8_t R_bit = get_bit(ins, R);
-	uint8_t field_mask = (ins & FIELD_MASK_MASK) >> FIELD_MASK_INDEX;
-	uint8_t rotate_imm = (ins & ROTATE_IMM_MASK) >> ROTATE_IMM_INDEX;
-	uint32_t byte_immediate = (ins & BYTE_IMMEDIATE_MASK) >> BYTE_IMMEDIATE_INDEX;
+	uint8_t field_mask = get_bits(ins, 19, 16);
+	uint8_t rotate_imm = get_bits(ins, 11, 8);
+	uint32_t immed_byte = get_bits(ins, 7, 0);
 	
-	uint32_t operand = ror(byte_immediate, rotate_imm * 2);
-	if (operand & UnallocMask)
+	uint32_t operand = ror(immed_byte, rotate_imm * 2);
+	if (operand & UnallocMask) {
+		warning("UNPREDICTABLE (Attempt to set reserved bits)\n");
 		return UNDEFINED_INSTRUCTION;
+	}
 
 	uint32_t byte_mask = 0;
 	if (get_bit(field_mask, 0))
@@ -393,21 +354,24 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 
 	if (R_bit == 0) {
 		if (arm_in_a_privileged_mode(p)) {
-			if (operand & StateMask)
+			if (operand & StateMask) {
+				warning("UNPREDICTABLE (Attempt to set non-ARM execution state)\n");
 				return UNDEFINED_INSTRUCTION;
-			else
+			} else
 				mask = byte_mask & (UserMask | PrivMask);
 		} else
 			mask = byte_mask & UserMask;
-		arm_write_cpsr(p, (current_CPSR & ~mask) | (operand & mask));
+		arm_write_cpsr(p, (arm_read_cpsr(p) & ~mask) | (operand & mask));
 		return SUCCESSFULLY_DECODED;
 	} else { // R == 1
 		if (arm_current_mode_has_spsr(p)) {
 			mask = byte_mask & (UserMask | PrivMask | StateMask);
 			arm_write_spsr(p, (arm_read_spsr(p) & ~mask) | (operand & mask));
 			return SUCCESSFULLY_DECODED;
-		} else
+		} else {
+			warning("UNPREDICTABLE (Attempt to use SPSR but current mode does not have SPSR)\n");
 			return UNDEFINED_INSTRUCTION;
+		}
 	}
 }
 
