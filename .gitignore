@@ -9,3 +9,9 @@ stamp-h1
 autom4te.cache/
 scanner.c
 configure~
+*.o
+*_test
+send_irq
+arm_simulator
+example*
+insertion_sort
