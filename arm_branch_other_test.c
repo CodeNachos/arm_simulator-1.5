@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "util.h"
-#include "debug.h"
 #include "trace.h"
 #include "trace_location.h"
 #include "memory.h"
@@ -11,6 +10,7 @@
 #include "arm_exception.h"
 #include "arm_branch_other.h"
 #include "arm_data_processing.h"
+#include "werror.h"
 
 #define NB_INSTR 1000
 

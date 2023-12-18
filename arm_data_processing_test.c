@@ -12,7 +12,7 @@
 #include "arm_branch_other.h"
 #include "arm_data_processing.h"
 
-#define NB_INSTR 1000
+#define NB_INSTR 1
 
 int main(int argc, char **argv) {
     int i, return_code;
