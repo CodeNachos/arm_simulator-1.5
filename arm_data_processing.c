@@ -28,12 +28,10 @@ Contact: Guillaume.Huard@imag.fr
 #include "debug.h"
 
 /* general masks */
-#define COND_MASK ((uint32_t)0xF << 28)
 #define ROTATE_IMM_MASK ((uint32_t)0xF << 8)
 #define BYTE_IMMEDIATE_MASK (uint32_t)0xFF
 
 /* general indexes */
-#define COND_INDEX 28
 #define ROTATE_IMM_INDEX 8
 #define BYTE_IMMEDIATE_INDEX 0
 
@@ -109,10 +107,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Z_bit = get_bit(current_CPSR, Z);
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
-
-	uint8_t cond = (ins & COND_MASK) >> COND_INDEX;
-	if (!arm_exec_cond_passed(cond, N_bit, Z_bit, C_bit, V_bit))
-		return SUCCESSFULLY_DECODED;
 	
 	uint8_t I_bit = get_bit(ins, I);
 	uint8_t S_bit = get_bit(ins, S);
