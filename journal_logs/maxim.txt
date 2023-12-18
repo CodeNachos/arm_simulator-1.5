@@ -4,3 +4,4 @@
 18/12 SWI is clarified, it's done
 18/12 Working on arm_branch_other tests
 18/12 Done first version of branch module, still there are ideas on improvement
+18/12 Running first tests on arm simulator, stuck with blind debugging, lots of questions

@@ -9,3 +9,4 @@
 17/12: Supervizing data processing and branch instructions code
 17/12: Managing git and pull requestes to main
 18/12: Updated Makefile.am to compile arm_branch_other_test.c 
+18/12 Running first tests on arm simulator, stuck with blind debugging, lots of questions
