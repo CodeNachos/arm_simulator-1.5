@@ -24,7 +24,7 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_constants.h"
 #include "util.h"
 #include "arm_exception.h"
-#include "werror.h"
+#include "debug.h"
 
 #include <debug.h>
 #include <stdlib.h>
@@ -52,7 +52,8 @@ int arm_branch(arm_core p, uint32_t ins) {
 	uint8_t codeop = (ins & BR_MASK) >> BR_INDEX;
 	// not a branching instruction code, raise an error
 	if(codeop != BR_CODE){
-		raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a branching instruction.\n");
+		warning("UNPREDICTABLE (arm_branch: Instruction code is not a branching instruction)\n");
+		return UNDEFINED_INSTRUCTION;
 	}
 	else{
 		int L = get_bit(ins, 24); // bit of B or BL
@@ -79,7 +80,8 @@ int arm_coprocessor_others_swi(arm_core p, uint32_t ins){
 	uint8_t codeop = (ins & SWI_MASK) >> SWI_INDEX; // get the instruction code
 	// not an SWI instruction code, raise an error
 	if(codeop != SWI_CODE){
-		raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not an SWI instruction.\n");
+		warning("UNPREDICTABLE (arm_branch: Instruction code is not an SWI instruction)\n");
+		return UNDEFINED_INSTRUCTION;
 	}
 	else return SOFTWARE_INTERRUPT;
 }
@@ -88,7 +90,8 @@ int arm_miscellaneous(arm_core p, uint32_t ins){
 	uint8_t codeop = (ins & MRS_MASK) >> MRS_INDEX; // get the instruction code
 	// not an MSR instruction code, raise an error
 	if(codeop != MRS_CODE){
-		raise(UNDEFINED_BEHAVIOUR, "arm_branch: Instruction code is not a MRS instruction.\n");
+		warning("UNPREDICTABLE (rm_branch: Instruction code is not a MRS instruction)\n");
+		return UNDEFINED_INSTRUCTION;
 	}
 	else{
 		int R_bit = get_bit(ins, 22); // get CPSR or SPSR
