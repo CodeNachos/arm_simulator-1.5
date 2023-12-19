@@ -108,16 +108,7 @@ int arm_execute_instruction(arm_core p) {
             break;
         
         case 0b001: 
-            switch(get_bits(instruction,24,20)) {
-    			case 0b10010:
-    			case 0b10110:
-    			case 0b10000:
-    			case 0b10100: 
-    				break;  //undefined
-    			default:
-    				result = arm_data_processing_immediate_msr(p,instruction);
-    				break;
-    		}
+            result = arm_data_processing_immediate_msr(p,instruction);
     	    break;
         
         case 0b010:

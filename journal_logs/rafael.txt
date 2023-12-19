@@ -12,6 +12,8 @@
 18/12: Running first tests on arm simulator, stuck with blind debugging, lots of questions
 18/12: Turns out we were using wrong version of gdb
 18/12: Reviewed arm_instructions
-19/12: Pushed final review of arm_instructions 
+19/12: Pushed review of arm_instructions 
 19/12: Reviwed arm_data_processing
 19/12: Testing data_processing
+19/12: Problem on implementation of data processing found. Requested review.
+19/12: Testing branch module
