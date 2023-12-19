@@ -6,3 +6,11 @@
 16/12: Previous error is related to my machine environemnt. I confirm the code works.
 	It is something related with the address sanitizer, when it is not used
 	there is no error
+17/12: Supervizing data processing and branch instructions code
+17/12: Managing git and pull requestes to main
+18/12: Updated Makefile.am to compile arm_branch_other_test.c 
+18/12: Running first tests on arm simulator, stuck with blind debugging, lots of questions
+18/12: Turns out we were using wrong version of gdb
+18/12: Reviewed arm_instructions
+19/12: Pushed final review of arm_instructions 
+19/12: Reviwed arm_data_processing
