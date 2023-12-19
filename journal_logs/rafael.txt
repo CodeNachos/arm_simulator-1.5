@@ -16,4 +16,6 @@
 19/12: Reviwed arm_data_processing
 19/12: Testing data_processing
 19/12: Problem on implementation of data processing found. Requested review.
+19/12: Reviewed of arm_instructions to fit needed changes of data processing 
 19/12: Testing branch module
+19/12: Corrected lr value assignation on arm_branch_other
