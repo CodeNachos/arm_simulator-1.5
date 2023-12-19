@@ -79,7 +79,7 @@ int instruction_cond(arm_core p, uint32_t inst){ //la condition doit etre rempli
         return 1;
         break;
     default:
-        warnig("Undefined condition\n");
+        warning("Undefined condition\n");
         return 0;
         break;
     }
@@ -88,61 +88,64 @@ int instruction_cond(arm_core p, uint32_t inst){ //la condition doit etre rempli
 
 int arm_execute_instruction(arm_core p) {
     uint32_t instruction;
-    arm_fetch(p, &instruction); 
-    if(!instruction_cond(p,instruction)) return 0; //verifier cond
+    int result = UNDEFINED_INSTRUCTION; 
+
+    arm_fetch(p, &instruction);
+
+    if (!instruction_cond(p, instruction)) return 0; //verifier cond
 
     switch (get_bits(instruction, 27, 25)) {
         case 0b000:
             if (get_bit(instruction, 4) && get_bit(instruction, 7)) { //5ieme instruction de la table
-                    return arm_load_store(p, instruction);
+                result = arm_load_store(p, instruction);
+            } else if (get_bits(instruction, 24, 23) == 2 && get_bit(instruction, 20) == 0) {
+                if (get_bit(instruction, 4) == 0 || (get_bit(instruction, 4) == 1 && get_bit(instruction, 7) == 0)) {
+                    result = arm_miscellaneous(p, instruction);
                 }
-                if (get_bits(instruction, 24, 23) == 2 && get_bit(instruction, 20) == 0) {
-                    if (get_bit(instruction, 4) == 0 || (get_bit(instruction, 4) == 1 && get_bit(instruction, 7) == 0)) {
-                    return arm_miscellaneous(p, instruction);
-                    }
-                }
+            }
                 else 
-                    return arm_data_processing_shift(p, instruction); //premiere instruction de la table
-        break;
+                    result = arm_data_processing_shift(p, instruction); //premiere instruction de la table
+            break;
+        
         case 0b001: 
-            switch(get_bits(instruction,24,20))
-    			{
-    				case 0b10010:
-                        break;
-    				case 0b10110:
-    					break;
-    				case 0b10000:
-                        break;
-    				case 0b10100: //undefined
-    					break;
-    				default:
-    					arm_data_processing_immediate_msr(p,instruction);
-    					break;
-    			}
-    	break;
+            switch(get_bits(instruction,24,20)) {
+    			case 0b10010:
+    			case 0b10110:
+    			case 0b10000:
+    			case 0b10100: 
+    				break;  //undefined
+    			default:
+    				result = arm_data_processing_immediate_msr(p,instruction);
+    				break;
+    		}
+    	    break;
+        
         case 0b010:
-            arm_load_store(p, instruction);
-        break;
+            result = arm_load_store(p, instruction);
+            break;
+
         case 0b011: 
             if(get_bit(instruction, 4)==0)
-                arm_load_store(p, instruction);
-        break;
+                result = arm_load_store(p, instruction);
+            break;
+            
         case 0b100: 
-            arm_load_store_multiple(p, instruction);
+            result = arm_load_store_multiple(p, instruction);
         break;
         case 0b101: 
-            arm_branch(p, instruction);
+            result = arm_branch(p, instruction);
         break;
         case 0b110:
-            arm_coprocessor_load_store(p, instruction);
+            result = arm_coprocessor_load_store(p, instruction);
         break;
         case 0b111: 
-            arm_coprocessor_others_swi(p, instruction);
+            result = arm_coprocessor_others_swi(p, instruction);
             break;
-        default:    
+        default:    // get bit value is cast to int by default
+            result = UNDEFINED_INSTRUCTION;
             break;
     }
-    return 0;
+    return result;
 }
 
 
