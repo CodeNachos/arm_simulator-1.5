@@ -18,4 +18,7 @@
 19/12: Problem on implementation of data processing found. Requested review.
 19/12: Reviewed of arm_instructions to fit needed changes of data processing 
 19/12: Testing branch module
-19/12: Corrected lr value assignation on arm_branch_other
+19/12: Corrected lr value assignation on arm_branch_other for BL
+19/12: Simple test of instructions class data processing and branching concluded.
+	More complex tests required
+	Review of instruction swi needed.
