@@ -91,6 +91,5 @@ char *arm_get_exception_name(unsigned char exception);
 char *arm_get_mode_name(uint8_t mode);
 int8_t arm_get_mode_number(char *name);
 char *arm_get_register_name(uint8_t reg);
-int arm_exec_cond_passed(uint8_t cond, uint8_t N_bit, uint8_t Z_bit, uint8_t C_bit, uint8_t V_bit);
 
 #endif
