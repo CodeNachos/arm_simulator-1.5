@@ -315,8 +315,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	N_bit = get_bit(result, 31);
 	Z_bit = (result == 0);
 	// Write result in Rd if there is a need to
-	if (change_Rd)
-		arm_write_register(p, Rd, result);
+	if (change_Rd) { 
+		warning("writing on register\n");
+		arm_write_register(p, Rd, result);	
+	}
 
 	/* CHANGE CPSR ACCORDING TO S */
 	if (S_bit && Rd == 15) {
