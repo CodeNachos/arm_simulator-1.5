@@ -47,7 +47,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
     	uint32_t offset_12 = get_bits(ins, 11, 0);
     
 	//Immediate offset/index
-	if (get_bits(ins, 27, 25) == 0b10) {
+	if (get_bits(ins, 27, 25) == 0b010) {
 	
 		// Load/Store : Word/Unsigned Byte - Immediate offset
 		if ((bit_P == 1 && bit_W == 0) || (bit_P == 1 && bit_W == 1) || (bit_P == 0 && bit_W == 0)){
@@ -66,7 +66,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	
 	
 	//Register offset/index
-	else if (get_bits(ins, 27, 25)==0b11 && get_bits(ins, 11, 4) == 0b00000000) {
+	else if (get_bits(ins, 27, 25)==0b011 && get_bits(ins, 11, 4) == 0b00000000) {
 		uint32_t rm_val = arm_read_register(p, rm);
 		
 		// Load/Store : Word/Unsigned Byte - Register offset
@@ -82,7 +82,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	}
 
 	// Scaled register offset/index
-	else if (get_bits(ins, 27, 25)==0b11 && !get_bit(ins, 4)) {
+	else if (get_bits(ins, 27, 25)==0b011 && !get_bit(ins, 4)) {
         uint32_t index;
 		uint32_t shift_imm = get_bits(ins, 11, 7);
 		uint8_t shift = get_bits(ins, 6, 5);
@@ -177,25 +177,28 @@ int arm_load_store(arm_core p, uint32_t ins) {
                 }
             
 
-            int bit_S = get_bit(ins, 20);
-	        int bit_H = get_bit(ins, 21);
+            int bit_S = get_bit(ins, 6);
+	        int bit_H = get_bit(ins, 5);
 
             if(bit_L==0 && bit_S==0 && bit_H==1){ //STRH
+                warning("writing address %d\n", address);
                 uint16_t half = arm_read_register(p, rd);
                 arm_write_half(p, address, half);
             }
             else if(bit_L==1 && bit_S==0 && bit_H==1){//LDRH
+                warning("loading address %d\n", address);
                 uint16_t half;
                 arm_read_half(p, address, &half);
                 arm_write_register(p, rd, half);
             }
             else return UNDEFINED_INSTRUCTION;
 
+            return SUCCESSFULLY_DECODED;
+
     }
-	
-    else{ //LOAD & STORE
 
         if (bit_L) { //load
+            warning("loading address %d\n", address);
             if (bit_B) { //LDRB
                 uint8_t octet;
                 arm_read_byte(p, address, &octet);
@@ -209,6 +212,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
         }
 
         else { //store
+            warning("writing address %d\n", address);
             if (bit_B) { //STRB
                 uint8_t octet;
 				octet= arm_read_register(p, rd);
@@ -220,7 +224,6 @@ int arm_load_store(arm_core p, uint32_t ins) {
                 arm_write_word(p, address, mot);
             }
         }
-    }
     return 0;
 }
 
