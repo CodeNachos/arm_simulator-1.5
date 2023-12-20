@@ -22,3 +22,6 @@
 19/12: Simple test of instructions class data processing and branching concluded.
 	More complex tests required
 	Review of instruction swi needed.
+20/12: Review and test of current work for arm_load_store
+20/12: Corrected few small errors for current work for arm_load_store
+20/12: Created test files for arm_load_store function
