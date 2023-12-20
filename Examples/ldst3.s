@@ -13,10 +13,6 @@ main:
     // Load 32-bit word with register offset
     ldr r3, [r0, r4, lsl #1] // Load the value at the address (r0 + r2 * 1) into r3
     
-    // Load 16-bit halfword with register offset
-    mov r2, #3
-    ldrh r4, [r0, r2, lsl #1] // Load the value at the address (r0 + r2 * 2) into r4
-
     swi 0x123456
 
 .data

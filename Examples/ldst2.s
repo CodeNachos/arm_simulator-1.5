@@ -16,7 +16,7 @@ main:
     // Pre-indexed addressing with 8-bit byte
     sub r0, r0, #7        // r0 <- data_section
     ldrb r3, [r0, #6]!    // Increment r0 by 6, then load the 8-bit value at the new address into r3
-    strb r3 [r0, #1]!     // Increment r0 by 1, then store the 8-bit value in r3 at adress r0
+    strb r3, [r0, #1]!     // Increment r0 by 1, then store the 8-bit value in r3 at adress r0
 
     sub r0, r0, #7        // r0 <- data_section
     ldrb r4, [r0], #1   // Load an 8-bit value from the address in r0 into r4,

@@ -91,7 +91,8 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@noinst_PROGRAMS = example1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) ldst1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -119,6 +120,15 @@ am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT) \
 	my_syscalls.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
 insertion_sort_LDADD = $(LDADD)
+am_ldst1_OBJECTS = ldst1.$(OBJEXT)
+ldst1_OBJECTS = $(am_ldst1_OBJECTS)
+ldst1_LDADD = $(LDADD)
+am_ldst2_OBJECTS = ldst2.$(OBJEXT)
+ldst2_OBJECTS = $(am_ldst2_OBJECTS)
+ldst2_LDADD = $(LDADD)
+am_ldst3_OBJECTS = ldst3.$(OBJEXT)
+ldst3_OBJECTS = $(am_ldst3_OBJECTS)
+ldst3_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -154,10 +164,12 @@ am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
 SOURCES = $(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
-	$(example4_SOURCES) $(insertion_sort_SOURCES)
+	$(example4_SOURCES) $(insertion_sort_SOURCES) $(ldst1_SOURCES) \
+	$(ldst2_SOURCES) $(ldst3_SOURCES)
 DIST_SOURCES = $(example1_SOURCES) $(example2_SOURCES) \
 	$(example3_SOURCES) $(example4_SOURCES) \
-	$(insertion_sort_SOURCES)
+	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
+	$(ldst3_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -307,6 +319,9 @@ example3_SOURCES = example3.s
 example4_SOURCES = example4.s
 insertion_sort_SOURCES = insertion_sort.c my_syscalls.s my_syscalls.h
 EXTRA_DIST = linker_script
+ldst1_SOURCES = ldst1.s
+ldst2_SOURCES = ldst2.s
+ldst3_SOURCES = ldst3.s
 all: all-am
 
 .SUFFIXES:
@@ -363,6 +378,18 @@ example4$(EXEEXT): $(example4_OBJECTS) $(example4_DEPENDENCIES) $(EXTRA_example4
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(insertion_sort_OBJECTS) $(insertion_sort_LDADD) $(LIBS)
+
+ldst1$(EXEEXT): $(ldst1_OBJECTS) $(ldst1_DEPENDENCIES) $(EXTRA_ldst1_DEPENDENCIES) 
+	@rm -f ldst1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst1_OBJECTS) $(ldst1_LDADD) $(LIBS)
+
+ldst2$(EXEEXT): $(ldst2_OBJECTS) $(ldst2_DEPENDENCIES) $(EXTRA_ldst2_DEPENDENCIES) 
+	@rm -f ldst2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst2_OBJECTS) $(ldst2_LDADD) $(LIBS)
+
+ldst3$(EXEEXT): $(ldst3_OBJECTS) $(ldst3_DEPENDENCIES) $(EXTRA_ldst3_DEPENDENCIES) 
+	@rm -f ldst3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst3_OBJECTS) $(ldst3_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)

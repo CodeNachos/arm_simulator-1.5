@@ -25,3 +25,4 @@
 20/12: Review and test of current work for arm_load_store
 20/12: Corrected few small errors for current work for arm_load_store
 20/12: Created test files for arm_load_store function
+20/12: updated Examples/Makefile.am to compile test files for arm_load_store
