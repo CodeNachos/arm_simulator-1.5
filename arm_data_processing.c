@@ -51,21 +51,26 @@ Contact: Guillaume.Huard@imag.fr
 /* immediate msr's information bit */
 #define R 22
 
+
 int add_carry(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_add_overflow(a, b, result) || (*result < a);
 }
+
 
 int add_overflow(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_add_overflow(a, b, result);
 }
 
+
 int sub_carry(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_sub_overflow(a, b, result) || (*result > a);
 }
 
+
 int sub_overflow(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_sub_overflow(a, b, result);
 }
+
 
 int data_processing(arm_core p, uint8_t S_bit, uint8_t opcode, uint8_t Rd, 
 					uint32_t Rn_value, uint32_t shifter_operand, uint8_t shifter_carry_out) {
@@ -203,6 +208,8 @@ int data_processing(arm_core p, uint8_t S_bit, uint8_t opcode, uint8_t Rd,
 	} else 
 		return SUCCESSFULLY_DECODED;
 }
+
+
 /* Decoding functions for different classes of instructions */
 int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	/* Read current flag */
@@ -354,6 +361,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	return data_processing(p, S_bit, opcode, Rd, Rn_value, shifter_operand, shifter_carry_out);
 }
 
+
 int arm_data_processing_immediate(arm_core p, uint32_t ins) {
 	/* Read current flag */
 	uint8_t C_bit = get_bit(arm_read_cpsr(p), C);
@@ -377,6 +385,7 @@ int arm_data_processing_immediate(arm_core p, uint32_t ins) {
 	
 	return data_processing(p, S_bit, opcode, Rd, Rn_value, shifter_operand, shifter_carry_out);
 }
+
 
 int arm_msr_immediate(arm_core p, uint32_t ins) {
 	uint8_t R_bit = get_bit(ins, R);
@@ -428,6 +437,7 @@ int arm_msr_immediate(arm_core p, uint32_t ins) {
 		}
 	}
 }
+
 
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	if (get_bits(ins, 24, 23) == 0b10 && get_bits(ins, 21, 20) == 0b10)
