@@ -252,32 +252,44 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
     int i = 0;
 
     if(register_list==0) return UNDEFINED_INSTRUCTION;
+	
+    //Why? It is specified that you only return UNPREDICTED_INSTRUCTION if and only if your instruction is an LDM, with S = 1 and you're in a System or User mode.
+    //You don't even test the mode we're in. To do that, you can get the mode by using registers_get_mode by calling the function and passing p->reg as parameter.
+    //So you only return this if S=1, L=1 and MODE = SYS or USR.
     if(S)  return UNDEFINED_INSTRUCTION; 
 
     // Déterminer le mode d'adressage
     switch ((get_bits(ins, 24, 23))) {
         //Increment after
+	    //(might be better to use 0b01...)
         case 1:
+		//ok
             start_address = rn;
             end_address = rn + (number_set_bits_in(register_list) * 4) - 4;
         break;
         //Increment before
+	    //0b11
         case 3:
             start_address = rn + 4;
             end_address = rn + (number_set_bits_in(register_list) * 4);
             break;
         //Decrement after
+	    //0b00
         case 0:
             start_address = rn - (number_set_bits_in(register_list) * 4) + 4;
             end_address = rn;
             break;
         //Decrement before
+	 //0b10   
         case 2:
             start_address = rn - (number_set_bits_in(register_list) * 4);
             end_address = rn - 4;
             break;
     }
-    
+    //This part (except for PC) is correct only if S = 0.
+    //When S = 1, other things must be taken into account, such as if LDM is using PC (from which you have to load into CPSR value from the SPSR, according to the mode).
+    //Or, if LDM with S=1 and no PC, you use banked registers of user mode (r8-r14) and not the ones in the register list.
+    //For STM, it is the same as the latter (as specified in the documentation)
     if (L) { // LDM
         uint32_t value;
         address = start_address;
@@ -285,11 +297,15 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
             if (get_bit(register_list, i) == 1) {
                 arm_read_word(p, address, &value);
                 arm_write_register(p, i, value);
+		//No need to check for this condition, as you already do so when you evaluate the addressing mode. The address is always incremented by 4.
                 if(U) address +=4;
+		//This else statement is wrong.	
                 else address -=4;
             }
         }
+	    //I don't understand this part. I looked at the documentation, and there is no 'special' treatment for PC unless the S bit == 1. Can you please explain?
         if (get_bit(register_list, 15) == 1) {
+		//No need for assignment (value =..), unless you want to check whether the reading was succesfull or not. (you should)
             value = arm_read_word(p, address, &value);
             arm_write_register(p, 15, value & 0xFFFFFFFE);
             if(U) address +=4;
@@ -301,14 +317,16 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
         address = start_address;
         for (i = 0; i <= 15; i++) {
             if (get_bit(register_list, i) == 1) {
+		//Yeah this is right
                 arm_write_word(p, address, arm_read_register(p, i));
                 if(U) address +=4;
+		//Again, useless
                 else address -=4;
             }
         }
         assert(end_address == (address - 4));
     }
-
+	//I think this is right? but it would've been better to use the formula provided in the documentation.
     if(W) {// base register is updated after the transfer
             arm_write_register(p, rn_registre, address);
     }
