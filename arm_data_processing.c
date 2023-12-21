@@ -28,7 +28,6 @@ Contact: Guillaume.Huard@imag.fr
 #include "debug.h"
 
 /* data processing information bits */
-#define I 25
 #define S 20
 
 /* data processing instructions */
@@ -77,7 +76,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
 	/* Decode instruction */
-	uint8_t I_bit = get_bit(ins, I);
 	uint8_t S_bit = get_bit(ins, S);
 	uint8_t opcode = get_bits(ins, 24, 21);
 	uint8_t Rn = get_bits(ins, 19, 16);
@@ -98,15 +96,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	int change_Rd;
 
 	/* CALCULATE THE SHIFTER OPERAND */
-	if (I_bit) {
-		// immediate
-		shifter_operand = ror(immed_byte, rotate_imm * 2);
-		if (rotate_imm == 0)
-			shifter_carry_out = C_bit;
-		else /* rotate_imm != 0 */
-			shifter_carry_out = get_bit(shifter_operand, 31);
-	} else if (get_bits(shifter_operand_code, 6, 4) == 0b000) {
+	if (get_bits(shifter_operand_code, 6, 4) == 0b000) {
 		// lsl by immediate
+		if (Rm == 15 || Rn == 15) // weird use of r15
+			Rm_value = arm_read_register(p, 15) + 4;
 		if (shift_imm == 0) { /* Register operand */
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
@@ -116,6 +109,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0001) {
 		// lsl by register
+		if (Rd == 15 || Rm == 15 || Rn == 15 || Rs == 15) {
+			warning("UNPREDICTABLE (Attempt to specify PC as register in shift by register)\n");
+			return UNDEFINED_INSTRUCTION;
+		}
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
@@ -131,6 +128,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 6, 4) == 0b010) {
 		// lsr by immediate
+		if (Rm == 15 || Rn == 15) // weird use of r15
+			Rm_value = arm_read_register(p, 15) + 4;
 		if (shift_imm == 0) {
 			shifter_operand = 0;
 			shifter_carry_out = get_bit(Rm_value, 31);
@@ -140,6 +139,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0011) {
 		// lsr by register
+		if (Rd == 15 || Rm == 15 || Rn == 15 || Rs == 15) {
+			warning("UNPREDICTABLE (Attempt to specify PC as register in shift by register)\n");
+			return UNDEFINED_INSTRUCTION;
+		}
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
@@ -155,6 +158,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 6, 4) == 0b100) {
 		// asr by immediate
+		if (Rm == 15 || Rn == 15) // weird use of r15
+			Rm_value = arm_read_register(p, 15) + 4;
 		if (shift_imm == 0) {
 			if (get_bit(Rm_value, 31) == 0) {
 				shifter_operand = 0;
@@ -169,6 +174,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0101) {
 		// asr by register
+		if (Rd == 15 || Rm == 15 || Rn == 15 || Rs == 15) {
+			warning("UNPREDICTABLE (Attempt to specify PC as register in shift by register)\n");
+			return UNDEFINED_INSTRUCTION;
+		}
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
@@ -186,6 +195,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 6, 4) == 0b110) {
 		// rotate right by immediate
+		if (Rm == 15 || Rn == 15) // weird use of r15
+			Rm_value = arm_read_register(p, 15) + 4;
 		if (shift_imm == 0) { /* rotate right with extend */
 			shifter_operand = ((uint32_t)C_bit << 31) | (Rm_value >> 1);
 			shifter_carry_out = get_bit(Rm_value, 0);
@@ -195,6 +206,10 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 	} else if (get_bits(shifter_operand_code, 7, 4) == 0b0111) {
 		// rotate right by register
+		if (Rd == 15 || Rm == 15 || Rn == 15 || Rs == 15) {
+			warning("UNPREDICTABLE (Attempt to specify PC as register in shift by register)\n");
+			return UNDEFINED_INSTRUCTION;
+		}
 		if (Rs_valueLB == 0) {
 			shifter_operand = Rm_value;
 			shifter_carry_out = C_bit;
