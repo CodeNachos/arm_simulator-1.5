@@ -104,13 +104,12 @@ int arm_execute_instruction(arm_core p) {
                 }
             }
                 else {
-                    warning("calling data process\n");
                     result = arm_data_processing_shift(p, instruction); //premiere instruction de la table
                 }
             break;
         
         case 0b001: 
-            result = arm_data_processing_immediate_msr(p,instruction);
+            result = arm_data_processing_shift(p,instruction);
     	    break;
         
         case 0b010:
