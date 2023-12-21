@@ -302,7 +302,7 @@ uint32_t registers_read(registers r, uint8_t reg, uint8_t mode)
             }
     }
     //Reg = 15, so PC
-    else
+    else if(reg == 15)
     {
         value = r->PC;
     }
@@ -405,7 +405,7 @@ void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value) {
             }
     }
     //Reg = 15, so PC
-    else
+    else if (reg == 15)
     {
         r->PC = value;
     }

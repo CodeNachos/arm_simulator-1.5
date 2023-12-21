@@ -15,3 +15,8 @@ send_irq
 arm_simulator
 example*
 insertion_sort
+Examples/ldst?.o
+Examples/dtprcs?.o
+Examples/ldst?
+Examples/dtprcs?
+config.h.in~
