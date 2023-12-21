@@ -363,6 +363,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 }
 
 
+
 int arm_data_processing_immediate(arm_core p, uint32_t ins) {
 	/* Read current flag */
 	uint8_t C_bit = get_bit(arm_read_cpsr(p), C);
