@@ -51,30 +51,162 @@ Contact: Guillaume.Huard@imag.fr
 /* immediate msr's information bit */
 #define R 22
 
-int add_overflow(uint32_t a, uint32_t b, uint32_t *result) {
-	return __builtin_add_overflow(a, b, result);
-}
-
 int add_carry(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_add_overflow(a, b, result) || (*result < a);
 }
 
-int sub_overflow(uint32_t a, uint32_t b, uint32_t *result) {
-	return __builtin_sub_overflow(a, b, result);
+int add_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_add_overflow(a, b, result);
 }
 
 int sub_carry(uint32_t a, uint32_t b, uint32_t *result) {
 	return __builtin_sub_overflow(a, b, result) || (*result > a);
 }
 
-/* Decoding functions for different classes of instructions */
-int arm_data_processing_shift(arm_core p, uint32_t ins) {
+int sub_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+	return __builtin_sub_overflow(a, b, result);
+}
+
+int data_processing(arm_core p, uint8_t S_bit, uint8_t opcode, uint8_t Rd, 
+					uint32_t Rn_value, uint32_t shifter_operand, uint8_t shifter_carry_out) {
 	/* Read current flag */
 	uint32_t current_CPSR = arm_read_cpsr(p);
 	uint8_t N_bit = get_bit(current_CPSR, N);
 	uint8_t Z_bit = get_bit(current_CPSR, Z);
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
+	uint32_t result, tmp, new_CPSR;
+	int change_Rd;
+
+	/* CALCULATE RESULT BASED OPCODE */
+	switch (opcode) {
+	case AND:
+		result = Rn_value & shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	case EOR:
+		result = Rn_value ^ shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	case SUB:
+		result = Rn_value - shifter_operand;
+		C_bit = sub_carry(Rn_value, shifter_operand, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 1;
+		break;
+	case RSB:
+		result = shifter_operand - Rn_value;
+		C_bit = sub_carry(shifter_operand, Rn_value, &result);
+		V_bit = sub_overflow(shifter_operand, Rn_value, &result);
+		change_Rd = 1;
+		break;
+	case ADD:
+		result = Rn_value + shifter_operand;
+		C_bit = add_carry(Rn_value, shifter_operand, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 1;
+		break;
+	case ADC:
+		tmp = Rn_value + shifter_operand;
+		result = tmp + C_bit;
+		C_bit = add_carry(Rn_value, shifter_operand, &tmp) || 
+				add_carry(tmp, C_bit, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &tmp) || 
+				add_overflow(tmp, C_bit, &result);
+		change_Rd = 1;
+		break;
+	case SBC:
+		tmp = Rn_value - shifter_operand;
+		result = tmp - !C_bit;
+		C_bit = sub_carry(Rn_value, shifter_operand, &tmp) || 
+				sub_carry(tmp, !C_bit, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &tmp) || 
+				sub_overflow(tmp, !C_bit, &result);
+		change_Rd = 1;
+		break;
+	case RSC:
+		tmp = shifter_operand - Rn_value;
+		result = tmp - !C_bit;
+		C_bit = sub_carry(shifter_operand, Rn_value, &tmp) || 
+				sub_carry(tmp, !C_bit, &result);
+		V_bit = sub_overflow(shifter_operand, Rn_value, &tmp) || 
+				sub_overflow(tmp, !C_bit, &result);
+		change_Rd = 1;
+		break;
+	case TST:
+		result = Rn_value & shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 0;
+		break;
+	case TEQ:
+		result = Rn_value ^ shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 0;
+		break;
+	case CMP:
+		result = Rn_value - shifter_operand;
+		C_bit = sub_carry(Rn_value, shifter_operand, &result);
+		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 0;
+		break;
+	case CMN:
+		result = Rn_value + shifter_operand;
+		C_bit = add_carry(Rn_value, shifter_operand, &result);
+		V_bit = add_overflow(Rn_value, shifter_operand, &result);
+		change_Rd = 0;
+		break;
+	case ORR:
+		result = Rn_value | shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	case MOV:
+		result = shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	case BIC:
+		result = Rn_value & ~shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	default: // MVN
+		result = ~shifter_operand;
+		C_bit = shifter_carry_out;
+		change_Rd = 1;
+		break;
+	}
+	// Get the 2 other flags 
+	N_bit = get_bit(result, 31);
+	Z_bit = (result == 0);
+	// Write result in Rd if there is a need to
+	if (change_Rd)
+		arm_write_register(p, Rd, result);
+
+	/* CHANGE CPSR ACCORDING TO S */
+	if (S_bit && Rd == 15) {
+		if (arm_current_mode_has_spsr(p)) {
+			arm_write_cpsr(p, arm_read_spsr(p));
+			return SUCCESSFULLY_DECODED;
+		} else {
+			warning("UNPREDICTABLE (Attempt to use SPSR but current mode does not have SPSR)\n");
+			return UNDEFINED_INSTRUCTION;
+		}
+	} else if (S_bit) {
+		// Write to CPSR
+		new_CPSR = ((current_CPSR & 0x00FFFFFF) | 
+					(N_bit < N) | (Z_bit < Z) | (C_bit << C) | (V_bit << V));
+		arm_write_cpsr(p, new_CPSR);
+		return SUCCESSFULLY_DECODED;
+	} else 
+		return SUCCESSFULLY_DECODED;
+}
+/* Decoding functions for different classes of instructions */
+int arm_data_processing_shift(arm_core p, uint32_t ins) {
+	/* Read current flag */
+	uint8_t C_bit = get_bit(arm_read_cpsr(p), C);
 	/* Decode instruction */
 	uint8_t S_bit = get_bit(ins, S);
 	uint8_t opcode = get_bits(ins, 24, 21);
@@ -82,8 +214,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t Rn_value = arm_read_register(p, Rn);
 	uint8_t Rd = get_bits(ins, 15, 12);
 	uint16_t shifter_operand_code = get_bits(ins, 11, 0);
-	uint8_t rotate_imm = get_bits(ins, 11, 8);
-	uint32_t immed_byte = get_bits(ins, 7, 0);
 	uint8_t shift_imm = get_bits(ins, 11, 7);
 	uint8_t Rm = get_bits(ins, 3, 0);
 	uint32_t Rm_value = arm_read_register(p, Rm);
@@ -92,8 +222,6 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint8_t Rs_valueLB = get_bits(Rs_value, 7, 0);; // least significant byte
 	uint32_t shifter_operand;
 	uint8_t shifter_carry_out;
-	uint32_t result, tmp;
-	int change_Rd;
 
 	/* CALCULATE THE SHIFTER OPERAND */
 	if (get_bits(shifter_operand_code, 6, 4) == 0b000) {
@@ -223,134 +351,34 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	} else
 		return UNDEFINED_INSTRUCTION;
 
-	/* CALCULATE RESULT BASED OPCODE */
-	switch (opcode) {
-	case AND:
-		result = Rn_value & shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	case EOR:
-		result = Rn_value ^ shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	case SUB:
-		result = Rn_value - shifter_operand;
-		C_bit = sub_carry(Rn_value, shifter_operand, &result);
-		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
-		change_Rd = 1;
-		break;
-	case RSB:
-		result = shifter_operand - Rn_value;
-		C_bit = sub_carry(shifter_operand, Rn_value, &result);
-		V_bit = sub_overflow(shifter_operand, Rn_value, &result);
-		change_Rd = 1;
-		break;
-	case ADD:
-		result = Rn_value + shifter_operand;
-		C_bit = add_carry(Rn_value, shifter_operand, &result);
-		V_bit = add_overflow(Rn_value, shifter_operand, &result);
-		change_Rd = 1;
-		break;
-	case ADC:
-		tmp = Rn_value + shifter_operand;
-		result = tmp + C_bit;
-		C_bit = add_carry(Rn_value, shifter_operand, &tmp) || 
-				add_carry(tmp, C_bit, &result);
-		V_bit = add_overflow(Rn_value, shifter_operand, &tmp) || 
-				add_overflow(tmp, C_bit, &result);
-		change_Rd = 1;
-		break;
-	case SBC:
-		tmp = Rn_value - shifter_operand;
-		result = tmp - !C_bit;
-		C_bit = sub_carry(Rn_value, shifter_operand, &tmp) || 
-				sub_carry(tmp, !C_bit, &result);
-		V_bit = sub_overflow(Rn_value, shifter_operand, &tmp) || 
-				sub_overflow(tmp, !C_bit, &result);
-		change_Rd = 1;
-		break;
-	case RSC:
-		tmp = shifter_operand - Rn_value;
-		result = tmp - !C_bit;
-		C_bit = sub_carry(shifter_operand, Rn_value, &tmp) || 
-				sub_carry(tmp, !C_bit, &result);
-		V_bit = sub_overflow(shifter_operand, Rn_value, &tmp) || 
-				sub_overflow(tmp, !C_bit, &result);
-		change_Rd = 1;
-		break;
-	case TST:
-		result = Rn_value & shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 0;
-		break;
-	case TEQ:
-		result = Rn_value ^ shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 0;
-		break;
-	case CMP:
-		result = Rn_value - shifter_operand;
-		C_bit = sub_carry(Rn_value, shifter_operand, &result);
-		V_bit = sub_overflow(Rn_value, shifter_operand, &result);
-		change_Rd = 0;
-		break;
-	case CMN:
-		result = Rn_value + shifter_operand;
-		C_bit = add_carry(Rn_value, shifter_operand, &result);
-		V_bit = add_overflow(Rn_value, shifter_operand, &result);
-		change_Rd = 0;
-		break;
-	case ORR:
-		result = Rn_value | shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	case MOV:
-		result = shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	case BIC:
-		result = Rn_value & ~shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	case MVN:
-		result = ~shifter_operand;
-		C_bit = shifter_carry_out;
-		change_Rd = 1;
-		break;
-	default:
-		return UNDEFINED_INSTRUCTION;
-		break;
-	}
-	// Get the 2 other flags 
-	N_bit = get_bit(result, 31);
-	Z_bit = (result == 0);
-	// Write result in Rd if there is a need to
-	if (change_Rd)
-		arm_write_register(p, Rd, result);
-
-	/* CHANGE CPSR ACCORDING TO S */
-	if (S_bit && Rd == 15) {
-		if (arm_current_mode_has_spsr(p)) {
-			arm_write_cpsr(p, arm_read_spsr(p));
-			return SUCCESSFULLY_DECODED;
-		} else {
-			warning("UNPREDICTABLE (Attempt to use SPSR but current mode does not have SPSR)\n");
-			return UNDEFINED_INSTRUCTION;
-		}
-	} else if (S_bit) {
-		// Write in CPSR using a call to msr
-		ins = 0xE328F200 | (N_bit << 3) | (Z_bit << 2) | (C_bit << 1) | V_bit;
-		return arm_data_processing_immediate_msr(p, ins);
-	} else 
-		return SUCCESSFULLY_DECODED;
+	return data_processing(p, S_bit, opcode, Rd, Rn_value, shifter_operand, shifter_carry_out);
 }
 
-int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
+int arm_data_processing_immediate(arm_core p, uint32_t ins) {
+	/* Read current flag */
+	uint8_t C_bit = get_bit(arm_read_cpsr(p), C);
+	/* Decode instruction */
+	uint8_t S_bit = get_bit(ins, S);
+	uint8_t opcode = get_bits(ins, 24, 21);
+	uint8_t Rn = get_bits(ins, 19, 16);
+	uint32_t Rn_value = arm_read_register(p, Rn);
+	uint8_t Rd = get_bits(ins, 15, 12);
+	uint8_t rotate_imm = get_bits(ins, 11, 8);
+	uint32_t immed_byte = get_bits(ins, 7, 0);
+	uint32_t shifter_operand;
+	uint8_t shifter_carry_out;
+
+	/* CACULATE SHIFTER OPERAND */
+	shifter_operand = ror(immed_byte, rotate_imm * 2);
+	if (rotate_imm == 0)
+		shifter_carry_out = C_bit;
+	else /* rotate_imm != 0 */
+		shifter_carry_out = get_bit(shifter_operand, 31);
+	
+	return data_processing(p, S_bit, opcode, Rd, Rn_value, shifter_operand, shifter_carry_out);
+}
+
+int arm_msr_immediate(arm_core p, uint32_t ins) {
 	uint8_t R_bit = get_bit(ins, R);
 	uint8_t field_mask = get_bits(ins, 19, 16);
 	uint8_t rotate_imm = get_bits(ins, 11, 8);
@@ -399,5 +427,12 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			return UNDEFINED_INSTRUCTION;
 		}
 	}
+}
+
+int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
+	if (get_bits(ins, 24, 23) == 0b10 && get_bits(ins, 21, 20) == 0b10)
+		return arm_msr_immediate(p, ins);
+	else
+		return arm_data_processing_immediate(p, ins);
 }
 
