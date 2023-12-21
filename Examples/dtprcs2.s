@@ -14,7 +14,7 @@ main:
     SUB R5, R4, R2  // R5 = R4 - R2
 
     // Test RSB instruction
-    RSB R6, R2, R4  // R6 = R2 - R4 (reverse subtract)
+    RSB R6, R2, R4  // R6 = R4 - R2 (reverse subtract)
 
     // Test ADD instruction
     ADD R7, R5, R6  // R7 = R5 + R6
@@ -26,19 +26,19 @@ main:
     SBC R9, R8, R5  // R9 = R8 - R5 - borrow
 
     // Test RSC instruction
-    RSC R10, R9, R6 // R10 = R9 - R6 - borrow (reverse subtract with carry)
+    RSC R10, R9, R6 // R10 = R6 - R9 - borrow (reverse subtract with carry)
 
     // Test TST instruction
-    TST R0, R1  // Test if R0 AND R1 is zero, result not stored
+    TST R0, R1  // Test if R0 AND R1, result not stored
 
     // Test TEQ instruction
-    TEQ R2, R3  // Test if R2 EOR R3 is zero, result not stored
+    TEQ R2, R3  // Test if R2 EOR R3 , result not stored
 
     // Test CMP instruction
-    CMP R4, R5  // Compare R4 and R5, result not stored
+    CMP R4, R5  // Compare R4 - R5, result not stored
 
     // Test CMN instruction
-    CMN R6, R7  // Compare R6 and R7, result not stored
+    CMN R6, R7  // Compare R6 + R7, result not stored
 
     // Test ORR instruction
     ORR R11, R4, R5  // R11 = R4 OR R5
