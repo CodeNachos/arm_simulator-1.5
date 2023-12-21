@@ -36,3 +36,4 @@
 	Small but still a problem...
 21/12: Created test files for data_processing
 21/12: Automatizing tests
+21/12: Compeleted automation of 2/3 tests for data_processing
