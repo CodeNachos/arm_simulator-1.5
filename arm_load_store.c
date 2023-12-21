@@ -25,6 +25,8 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_constants.h"
 #include "util.h"
 #include "debug.h"
+#include <assert.h>
+
 
 void check_U(int u, uint32_t *address, uint32_t rn, uint32_t offset){
     if (u== 1) *address = rn + offset;
@@ -224,8 +226,94 @@ int arm_load_store(arm_core p, uint32_t ins) {
     return 0;
 }
 
+int number_set_bits_in(uint16_t num) {
+    int count = 0;
+    while (num) {
+        count += num & 1;
+        num >>= 1;
+    }
+    return count;
+}
+
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+
+    uint32_t rn_registre = get_bits(ins, 19, 16);
+    uint16_t register_list = get_bits(ins, 15, 0);
+    int L = get_bit(ins, 20);
+    int W = get_bit(ins, 21);
+    int S =get_bit(ins, 22);
+    int U =get_bit(ins, 23);
+	int P =get_bit(ins, 24);
+    uint32_t address;
+
+    // Obtenir la valeur du registre Rn
+    uint32_t rn = arm_read_register(p, rn_registre);
+    uint32_t start_address, end_address;
+    int i = 0;
+
+    if(register_list==0) return UNDEFINED_INSTRUCTION;
+    if(S)  return UNDEFINED_INSTRUCTION; 
+
+    // Déterminer le mode d'adressage
+    switch ((get_bits(ins, 24, 23))) {
+        //Increment after
+        case 1:
+            start_address = rn;
+            end_address = rn + (number_set_bits_in(register_list) * 4) - 4;
+        break;
+        //Increment before
+        case 3:
+            start_address = rn + 4;
+            end_address = rn + (number_set_bits_in(register_list) * 4);
+            break;
+        //Decrement after
+        case 0:
+            start_address = rn - (number_set_bits_in(register_list) * 4) + 4;
+            end_address = rn;
+            break;
+        //Decrement before
+        case 2:
+            start_address = rn - (number_set_bits_in(register_list) * 4);
+            end_address = rn - 4;
+            break;
+    }
+    
+    if (L) { // LDM
+        uint32_t value;
+        address = start_address;
+        for (i = 0; i <= 14; i++) {
+            if (get_bit(register_list, i) == 1) {
+                arm_read_word(p, address, &value);
+                arm_write_register(p, i, value);
+                if(U) address +=4;
+                else address -=4;
+            }
+        }
+        if (get_bit(register_list, 15) == 1) {
+            value = arm_read_word(p, address, &value);
+            arm_write_register(p, 15, value & 0xFFFFFFFE);
+            if(U) address +=4;
+            else address -=4;
+        }
+        assert(end_address == (address - 4));
+
+    } else { // STM
+        address = start_address;
+        for (i = 0; i <= 15; i++) {
+            if (get_bit(register_list, i) == 1) {
+                arm_write_word(p, address, arm_read_register(p, i));
+                if(U) address +=4;
+                else address -=4;
+            }
+        }
+        assert(end_address == (address - 4));
+    }
+
+    if(W) {// base register is updated after the transfer
+            arm_write_register(p, rn_registre, address);
+    }
+
+    return 0;
 }
 
 int arm_coprocessor_load_store(arm_core p, uint32_t ins) {
