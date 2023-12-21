@@ -109,7 +109,7 @@ int arm_execute_instruction(arm_core p) {
             break;
         
         case 0b001: 
-            result = arm_data_processing_shift(p,instruction);
+            result = arm_data_processing_immediate_msr(p,instruction);
     	    break;
         
         case 0b010:
