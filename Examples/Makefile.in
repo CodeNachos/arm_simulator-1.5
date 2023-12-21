@@ -92,7 +92,9 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) ldst1$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	dtprcs1$(EXEEXT) dtprcs2$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -104,6 +106,15 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+am_dtprcs1_OBJECTS = dtprcs1.$(OBJEXT)
+dtprcs1_OBJECTS = $(am_dtprcs1_OBJECTS)
+dtprcs1_LDADD = $(LDADD)
+am_dtprcs2_OBJECTS = dtprcs2.$(OBJEXT)
+dtprcs2_OBJECTS = $(am_dtprcs2_OBJECTS)
+dtprcs2_LDADD = $(LDADD)
+am_dtprcs3_OBJECTS = dtprcs3.$(OBJEXT)
+dtprcs3_OBJECTS = $(am_dtprcs3_OBJECTS)
+dtprcs3_LDADD = $(LDADD)
 am_example1_OBJECTS = example1.$(OBJEXT)
 example1_OBJECTS = $(am_example1_OBJECTS)
 example1_LDADD = $(LDADD)
@@ -163,10 +174,12 @@ AM_V_CCAS = $(am__v_CCAS_@AM_V@)
 am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
-SOURCES = $(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
+SOURCES = $(dtprcs1_SOURCES) $(dtprcs2_SOURCES) $(dtprcs3_SOURCES) \
+	$(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
 	$(example4_SOURCES) $(insertion_sort_SOURCES) $(ldst1_SOURCES) \
 	$(ldst2_SOURCES) $(ldst3_SOURCES)
-DIST_SOURCES = $(example1_SOURCES) $(example2_SOURCES) \
+DIST_SOURCES = $(dtprcs1_SOURCES) $(dtprcs2_SOURCES) \
+	$(dtprcs3_SOURCES) $(example1_SOURCES) $(example2_SOURCES) \
 	$(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
 	$(ldst3_SOURCES)
@@ -322,6 +335,9 @@ EXTRA_DIST = linker_script
 ldst1_SOURCES = ldst1.s
 ldst2_SOURCES = ldst2.s
 ldst3_SOURCES = ldst3.s
+dtprcs1_SOURCES = dtprcs1.s
+dtprcs2_SOURCES = dtprcs2.s
+dtprcs3_SOURCES = dtprcs3.s
 all: all-am
 
 .SUFFIXES:
@@ -358,6 +374,18 @@ $(am__aclocal_m4_deps):
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+
+dtprcs1$(EXEEXT): $(dtprcs1_OBJECTS) $(dtprcs1_DEPENDENCIES) $(EXTRA_dtprcs1_DEPENDENCIES) 
+	@rm -f dtprcs1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs1_OBJECTS) $(dtprcs1_LDADD) $(LIBS)
+
+dtprcs2$(EXEEXT): $(dtprcs2_OBJECTS) $(dtprcs2_DEPENDENCIES) $(EXTRA_dtprcs2_DEPENDENCIES) 
+	@rm -f dtprcs2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs2_OBJECTS) $(dtprcs2_LDADD) $(LIBS)
+
+dtprcs3$(EXEEXT): $(dtprcs3_OBJECTS) $(dtprcs3_DEPENDENCIES) $(EXTRA_dtprcs3_DEPENDENCIES) 
+	@rm -f dtprcs3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs3_OBJECTS) $(dtprcs3_LDADD) $(LIBS)
 
 example1$(EXEEXT): $(example1_OBJECTS) $(example1_DEPENDENCIES) $(EXTRA_example1_DEPENDENCIES) 
 	@rm -f example1$(EXEEXT)

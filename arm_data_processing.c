@@ -82,8 +82,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	uint32_t Rn_value = arm_read_register(p, Rn);
 	uint8_t Rd = get_bits(ins, 15, 12);
 	uint16_t shifter_operand_code = get_bits(ins, 11, 0);
-	uint8_t rotate_imm = get_bits(ins, 11, 8);
-	uint32_t immed_byte = get_bits(ins, 7, 0);
+	// uint8_t rotate_imm = get_bits(ins, 11, 8);
+	// uint32_t immed_byte = get_bits(ins, 7, 0);
 	uint8_t shift_imm = get_bits(ins, 11, 7);
 	uint8_t Rm = get_bits(ins, 3, 0);
 	uint32_t Rm_value = arm_read_register(p, Rm);
