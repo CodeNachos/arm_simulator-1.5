@@ -251,6 +251,7 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
     uint32_t start_address, end_address;
     int i = 0;
 
+    // r: this is a valid instruction but result is unpredictable
     if(register_list==0) return UNDEFINED_INSTRUCTION;
 	
     //Why? It is specified that you only return UNPREDICTED_INSTRUCTION if and only if your instruction is an LDM, with S = 1 and you're in a System or User mode.
@@ -311,6 +312,8 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
             if(U) address +=4;
             else address -=4;
         }
+        // r: not sure if an assert is the best here. It will kill the simulation
+        // maybe we should return an exception
         assert(end_address == (address - 4));
 
     } else { // STM
@@ -324,9 +327,12 @@ int arm_load_store_multiple(arm_core p, uint32_t ins) {
                 else address -=4;
             }
         }
+        // r: not sure if an assert is the best here. It will kill the simulation
+        // maybe we should return an exception
         assert(end_address == (address - 4));
     }
 	//I think this is right? but it would've been better to use the formula provided in the documentation.
+    // r: I think its right yeah we gotta test it, better than calculate it again
     if(W) {// base register is updated after the transfer
             arm_write_register(p, rn_registre, address);
     }
