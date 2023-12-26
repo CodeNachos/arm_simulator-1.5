@@ -26,7 +26,6 @@ Contact: Guillaume.Huard@imag.fr
 
 //Pointers in the general registers table
 #define USR_INDEX 0
-#define SYS_INDEX 0
 #define SVC_INDEX 16
 #define ABT_INDEX 32
 #define UND_INDEX 48
@@ -34,7 +33,7 @@ Contact: Guillaume.Huard@imag.fr
 #define FIQ_INDEX 80
 
 //General registers table.
-#define GREG_TABLE 95
+#define GREG_TABLE 96
 #define STAT_REG 5
 
 
