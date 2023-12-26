@@ -24,9 +24,17 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_constants.h"
 #include <stdlib.h>
 
-#define UNBANKED_REG 8
-#define BANKED_R8_R12 10
-#define BANKED_R13_R14 12
+//Pointers in the general registers table
+#define USR_INDEX 0
+#define SYS_INDEX 0
+#define SVC_INDEX 16
+#define ABT_INDEX 32
+#define UND_INDEX 48
+#define IRQ_INDEX 64
+#define FIQ_INDEX 80
+
+//General registers table.
+#define GREG_TABLE 95
 #define STAT_REG 5
 
 
@@ -57,22 +65,12 @@ Contact: Guillaume.Huard@imag.fr
 
 // With this in mind, we'll be able to properly construct our registers data structure:
 struct registers_data{
-    //Table containing values of unbanked registers r0-r7 (32 bits since that's how it is in the documentation)
-    uint32_t *rUnbancked;
+    //Table containing general registers with all modes included.
+    uint32_t *genreg;
 
-    //Table containing banked registers for r8-r12, as there are only two physical different register for each
-    //register. There's only r8_user and r8_fiq (in other modes, it's r8_user).
-    //Indices from 0 to 4 are reserved to r8_user - r12_user.
-    //Indices from 5 to 9 are reserved to r8_fiq - r12_fiq.
-    uint32_t *banked_r8_r12;
-    //Other banked registers for r13-r14. Each mode has its own physical register for each r13/r14 register (except User and System, which share the same).
-    //A total of 12 banked registers.
-    //each pairwise indices represent r13 and r14 in a mode (0-r13_user, 1-r14_user, 2-r13_fiq, 3-r14_fiq...)
-    uint32_t *banked_r13_r14;
+
     // Value of CPSR register:
     uint32_t CPSR;
-    //Value of Program Counter:
-    uint32_t PC;
 
     //Table containning values of the status registers: (SPSR)
     uint32_t *rstat;
@@ -96,45 +94,20 @@ registers registers_create() {
     // If failed:
     if (r == NULL)
         return r;
-    //Allocation of 8 general registers (r0-r7):
-    r->rUnbancked = (uint32_t *)malloc(sizeof(uint32_t) * UNBANKED_REG);
-    //If failed:
-    if(r->rUnbancked==NULL) 
+    //Allocation of general registers table:
+    r->genreg = (uint32_t *)malloc(sizeof(uint32_t) * GREG_TABLE);
+    //Check if successfull allocation
+    if(r->genreg == NULL)
         return r;
-    //Initialize register value to 0 (0X00000000)
-    for (int i = 0; i < UNBANKED_REG;i++)
+    
+    //Initialize table:
+    for (int i = 0; i < GREG_TABLE;i++)
     {
-        r->rUnbancked[i] = 0;
-    }
-    //Initialize banked r8-r12 registers:
-    r->banked_r8_r12 = (uint32_t *)malloc(sizeof(uint32_t) * BANKED_R8_R12);
-    //If failed:
-    if(r->banked_r8_r12==NULL)
-        return r;
-    //Initialize R8-R12 registers values
-    for (int i = 0; i < BANKED_R8_R12; i++)
-    {
-        r->banked_r8_r12[i] = 0;
-    }
-
-    //Initialize R13-R14 registers:
-    r->banked_r13_r14 = (uint32_t *)malloc(sizeof(uint32_t) * BANKED_R13_R14);
-    //If failed:
-    if(r->banked_r13_r14==NULL)
-    {
-        return r;
-    }
-    //Initialize their values:
-    for (int i = 0; i<BANKED_R13_R14;i++)
-    {
-        r->banked_r13_r14[i] = 0;
+        r->genreg[i] = 0;
     }
 
     // Initialize CPSR register:
     r->CPSR = 0;
-
-    //Initialize PC register:
-    r->PC = 0;
 
     //Allocation of SPSR registers:
     r->rstat = (uint32_t *)malloc(sizeof(uint32_t) * STAT_REG);
@@ -155,17 +128,9 @@ registers registers_create() {
 //Return: void
 void registers_destroy(registers r) {
     //If any of the allocated memory isn't NULL, we free it.
-    if(r->rUnbancked!=NULL)
+    if(r->genreg!=NULL)
     {
-        free(r->rUnbancked);
-    }
-    if(r->banked_r8_r12!=NULL)
-    {
-        free(r->banked_r8_r12);
-    }
-    if(r->banked_r13_r14!=NULL)
-    {
-        free(r->banked_r13_r14);
+        free(r->genreg);
     }
     if(r->rstat!=NULL)
     {
@@ -248,65 +213,80 @@ int registers_in_a_privileged_mode(registers r) {
     }
 }
 
-// Method 'registers_read' which reads the value of a reg given the current mode:
-// Parameters: registers r, uint8_t reg, uint8_t mode
-// Returns: The value at register reg or 0 if mode doesn't exist
-uint32_t registers_read(registers r, uint8_t reg, uint8_t mode)
+//Method 'mode_ind' which determines the pointer in our reg table and returns it, based on the mode and the reg number
+//Parameters: uint8_t reg, uint8_t mode
+//Return: Index (pointer) to our starting registers for a given mode
+//        -1 if the mode or reg doesn't exist.
+uint32_t mode_ind(uint8_t reg, uint8_t mode)
 {
-    uint32_t value = 0;
-    //If the register is UNBANKED
-    if(reg>=0 && reg<=7)
+    //Register is unbanked:
+    if(reg >=0 && reg<=7)
     {
-        //Then we don't care about the mode
-        value = r->rUnbancked[reg];
+        //Don't care about mode
+        return USR_INDEX;
     }
-    //Else if it is between r8-r12
+    //If register is banked and between 8 and 12
     else if(reg>=8 && reg<=12)
     {
-        //We only need to deal with two modes (FIQ and anything else)
-        if(mode!=FIQ)
-        {
-            value = r->banked_r8_r12[reg - 8]; //ri with i belonging to [[0,4]] is any mode except fiq
-        }
+        //We only care about two modes:
+        //If the mode is FIQ:
+        if(mode == FIQ)
+            return FIQ_INDEX;
+        //Else if it is anything else 
+        else if(mode == USR || mode == SYS || mode == SVC|| mode == ABT || mode == UND || mode == IRQ)
+            return USR_INDEX;
+        //If it is an invalid mode
         else
-        {
-            value = r->banked_r8_r12[reg - 8 + 5]; //ri with i belonging to [[5,9]] is fiq mode (ri_fiq)
-        }
+            return -1;
     }
-    else if (reg>=13 && reg<=14)
+    //Else if it is a banked register between 13 and 14:
+    else if(reg>=13 && reg<=14)
     {
+        //We extract our pointer depending on the mode:
         switch(mode)
         {
             case USR:
-                value = r->banked_r13_r14[reg - 13]; //r13_user and r14_user
-                break;
-            case FIQ:
-                value = r->banked_r13_r14[reg - 13 + 2]; //r13_fiq and r14_fiq
-                break;
-            case IRQ:
-                value = r->banked_r13_r14[reg - 13 + 4]; //r13_irq and r14_riq
-                break;
-            case SVC:
-                value = r->banked_r13_r14[reg - 13 + 6]; //r13_svc and r14_svc
-                break;
-            case ABT:
-                value = r->banked_r13_r14[reg- 13 + 8]; //r13_abort and r14_abort
-            case UND:
-                value = r->banked_r13_r14[reg -13 + 10]; //r13_undefined and r14_undefined
-                break;
             case SYS:
-                value = r->banked_r13_r14[reg - 13]; //r13_sys and r14_sys, sys and user share the same registers.
-                break;
+                return USR_INDEX;
+            case SVC:
+                return SVC_INDEX;
+            case ABT:
+                return ABT_INDEX;
+            case UND:
+                return UND_INDEX;
+            case IRQ:
+                return IRQ_INDEX;
+            case FIQ:
+                return FIQ_INDEX;
             default:
-                value = value;
-            }
+                return -1;
+        }
     }
-    //Reg = 15, so PC
+    //If it is PC:
     else if(reg == 15)
     {
-        value = r->PC;
+        //Then we don't care about the mode:
+        return USR_INDEX;
     }
+    //Reg number is invalid
+    else
+    {
+        return -1;
+    }
+}
 
+// Method 'registers_read' which reads the value of a reg given the current mode:
+// Parameters: registers r, uint8_t reg, uint8_t mode
+// Returns: The value at register reg or 0 if mode or reg number doesn't exist
+uint32_t registers_read(registers r, uint8_t reg, uint8_t mode)
+{
+    uint32_t value = 0;
+    //Get pointer to our table, which points at the first register of a given mode
+    int Mindex = mode_ind(reg, mode);
+    // If an error has occured, return -1;
+    if (Mindex == -1)
+        return 0;
+    value = r->genreg[Mindex + reg];
     return value;
 }
 
@@ -358,57 +338,10 @@ uint32_t registers_read_spsr(registers r, uint8_t mode) {
 //return : void 
 void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value) {
     //if register is UNBANCKED
-    if(reg>=0 && reg<=7)
-    {
-        //then we don't care about the mode
-        r->rUnbancked[reg] = value;
-    }
-    //Else if it is between r8-r12
-    else if(reg>=8 && reg<=12)
-    {
-        //We only need to deal with two modes (FIQ and anything else)
-        if(mode!=FIQ)
-        {
-            r->banked_r8_r12[reg - 8] = value; //ri with i belonging to [[0,4]] is any mode except fiq
-        }
-        else
-        {
-            r->banked_r8_r12[reg - 8 + 5] = value; //ri with i belonging to [[5,9]] is fiq mode (ri_fiq)
-        }
-    }
-    else if (reg>=13 && reg<=14)
-    {
-        switch(mode)
-        {
-            case USR:
-                r->banked_r13_r14[reg - 13] = value; //r13_user and r14_user
-                break;
-            case FIQ:
-                r->banked_r13_r14[reg - 13 + 2] = value; //r13_fiq and r14_fiq
-                break;
-            case IRQ:
-                r->banked_r13_r14[reg - 13 + 4] = value; //r13_irq and r14_riq
-                break;
-            case SVC:
-                r->banked_r13_r14[reg - 13 + 6] = value; //r13_svc and r14_svc
-                break;
-            case ABT:
-                r->banked_r13_r14[reg- 13 + 8] = value; //r13_abort and r14_abort
-            case UND:
-                r->banked_r13_r14[reg -13 + 10] = value; //r13_undefined and r14_undefined
-                break;
-            case SYS:
-                r->banked_r13_r14[reg - 13] = value; //r13_sys and r14_sys, sys and user share the same registers.
-                break;
-            default:
-                value = value;
-            }
-    }
-    //Reg = 15, so PC
-    else if (reg == 15)
-    {
-        r->PC = value;
-    }
+    int Mindex = mode_ind(reg, mode);
+    if(Mindex==-1)
+        return;
+    r->genreg[Mindex + reg] = value;
     return;
 }
 
