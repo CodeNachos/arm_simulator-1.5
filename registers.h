@@ -46,9 +46,6 @@ int registers_current_mode_has_spsr(registers r);
 // Method 'registers_in_a_privileged_mode' which checks whether registers are in a priveleged mode or not:
 int registers_in_a_privileged_mode(registers r);
 
-//Method 'mode_ind' which determines the pointer in our reg table and returns it, based on the mode and the reg number
-uint32_t mode_ind(uint8_t reg, uint8_t mode)
-
 //Method 'registers_read' which reads the value of a reg given the current mode
 uint32_t registers_read(registers r, uint8_t reg, uint8_t mode);
 
