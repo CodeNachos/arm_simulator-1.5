@@ -1,7 +1,6 @@
 .global main
 .text
 main:
-
     //Initialize some registers with known values
     MOV     r1, #10        // Initialize r1 with 10
     MOV     r2, #20        // Initialize r2 with 20
@@ -34,17 +33,17 @@ SUB:    // Test case for SUB instruction
     // ...
 
 RSB:    // Test case for RSB instruction
-    RSB     r9, r10, r11, LSL r12
+    RSB     r9, r10, r11, LSL #2
     // Add further testing logic as needed
     // ...
 
 ADD:    // Test case for ADD instruction
-    ADD     r13, r14, r15, LSR #2
+    ADD     r13, r13, r14, LSR #2
     // Add further testing logic as needed
     // ...
 
 ADC:    // Test case for ADC instruction
-    ADC     r1, r2, r3, LSR r4
+    ADC     r1, r2, r3, LSR r1
     // Add further testing logic as needed
     // ...
 
@@ -65,36 +64,6 @@ TST:    // Test case for TST instruction
 
 TEQ:    // Test case for TEQ instruction
     TEQ     r2, r3, ROR r4
-    // Add further testing logic as needed
-    // ...
-
-CMP:    // Test case for CMP instruction
-    CMP     r7, r8, RRX
-    // Add further testing logic as needed
-    // ...
-
-CMN:    // Test case for CMN instruction
-    CMN     r10, #255
-    // Add further testing logic as needed
-    // ...
-
-ORR:    // Test case for ORR instruction
-    ORR     r14, r15, r1
-    // Add further testing logic as needed
-    // ...
-
-MOV:    // Test case for MOV instruction
-    MOV     r3, r4, LSL #1
-    // Add further testing logic as needed
-    // ...
-
-BIC:    // Test case for BIC instruction
-    BIC     r6, r7, r8, ASR r9
-    // Add further testing logic as needed
-    // ...
-
-MVN:    // Test case for MVN instruction
-    MVN     r9, r10
     // Add further testing logic as needed
     // ...
 

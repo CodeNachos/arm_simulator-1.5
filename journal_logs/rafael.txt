@@ -37,3 +37,11 @@
 21/12: Created test files for data_processing
 21/12: Automatizing tests
 21/12: Compeleted automation of 2/3 tests for data_processing
+
+22/12 - 06/01: Vacations
+
+07/01: Organized meeting for tuesday 09/01 and divided proposed task division
+	for the week
+07/01: Studied the possibility of using tracing functions for testing
+
+08/01: Resumed test of the simultor
