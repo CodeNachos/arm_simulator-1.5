@@ -15,7 +15,7 @@ AM_LDFLAGS=-nostdlib -T $(srcdir)/linker_script -n --entry main
 AM_LDFLAGS+=-Wl,-EB
 
 if HAVE_ARM_COMPILER
-noinst_PROGRAMS=example1 example2 example3 example4 insertion_sort ldst1 ldst2 ldst3 dtprcs1 dtprcs2 dtprcs3 brch1
+noinst_PROGRAMS=example1 example2 example3 example4 insertion_sort ldst1 ldst2 ldst3 dtprcs1 dtprcs2 dtprcs3 brch1 prog1 prog2 prog3 prog4
 
 all-am: $(PROGS)
 endif
@@ -38,6 +38,10 @@ dtprcs3_SOURCES=dtprcs3.s
 
 brch1_SOURCES=brch1.s
 
+prog1_SOURCES=prog1.s
+prog2_SOURCES=prog2.s
+prog3_SOURCES=prog3.s
+prog4_SOURCES=prog4.s
 
 clean-local:
 	$(RM) $(PROGS)
