@@ -45,7 +45,6 @@
 
 08/01: Resumed test of the simultor
 08/01: Finished tesing on data processing
-08/01: Verified that problem with pre-indexed and post-indexed addressing modes 
-	for load-store is not yet resolved
-08/01: Started writing test files for load-store multiple
 
+09/01: Created simple test programs
+09/01: Helped debug load store instructions
