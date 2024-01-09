@@ -201,8 +201,9 @@ int data_processing(arm_core p, uint8_t S_bit, uint8_t opcode, uint8_t Rd,
 		}
 	} else if (S_bit) {
 		// Write to CPSR
-		new_CPSR = ((current_CPSR & 0x00FFFFFF) | 
-					(N_bit << N) | (Z_bit << Z) | (C_bit << C) | (V_bit << V));
+		new_CPSR = ((current_CPSR & 0x0FFFFFFF) | 
+					((uint32_t)N_bit << N) | ((uint32_t)Z_bit << Z) | 
+					((uint32_t)C_bit << C) | ((uint32_t)V_bit << V));
 		arm_write_cpsr(p, new_CPSR);
 		return SUCCESSFULLY_DECODED;
 	} else 
