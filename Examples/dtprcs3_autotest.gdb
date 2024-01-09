@@ -1,12 +1,12 @@
-# test dtprcs1
+# test dtprcs3
 # execute from gdb after seting target to remote
 # usage:
-# ./arm_simulator --gdb-port 5800
-# source Examples/dtprcs1_autotest.gdb
+# target remote localhost:<port>
+# source Examples/dtprcs2_autotest.gdb
 
-file Examples/dtprcs3
-target remote localhost:5800
 set endian big
+
+file Examples/dtprcs2
 load
 
 disassemble
