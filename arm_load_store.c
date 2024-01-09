@@ -67,16 +67,16 @@ uint32_t shift_operation(arm_core p, uint32_t rm_val, uint8_t shift, uint32_t sh
     return index;
 }
 
-int process_load_store_instruction(arm_core p, int ins, int P, int W, int bit_U, uint32_t *address, uint32_t *rn, uint32_t value) {
+int process_load_store_instruction(arm_core p, int ins, int P, int W, int bit_U, uint32_t *address, uint32_t *rn, uint32_t rn_register, uint32_t value) {
     if (P == 1 && W == 0) { //offset
         check_U(bit_U, address, *rn, value);
     } else if (P == 1 && W == 1) { //pre-indexed
         check_U(bit_U, address, *rn, value);
-        arm_write_register(p, *rn, *address);
+        arm_write_register(p, rn_register, *address);
     } else if (P == 0 && W == 0) { //post-indexed
         *address = *rn;
         check_U(bit_U, rn, *rn, value);
-        arm_write_register(p, *rn, *rn);
+        arm_write_register(p, rn_register, *rn);
     } else {
         return UNDEFINED_INSTRUCTION;
     }
@@ -100,7 +100,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
     
 	/*  Immediate : */
 	if (get_bits(ins, 27, 25) == 0b010) {
-	        int result = process_load_store_instruction(p, ins, bit_P, bit_W, bit_U, &address, &rn, offset_12);
+	        int result = process_load_store_instruction(p, ins, bit_P, bit_W, bit_U, &address, &rn , rn_register, offset_12);
 	        if (result != 0) {
 	            return result;
 	        }
@@ -108,7 +108,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
         
 	/* Register : */
 	else if (get_bits(ins, 27, 25)==0b011 && get_bits(ins, 11, 4) == 0b00000000) {
-		int result = process_load_store_instruction(p, ins, bit_P, bit_W , bit_U, &address, &rn, rm_val);
+		int result = process_load_store_instruction(p, ins, bit_P, bit_W , bit_U, &address, &rn, rn_register, rm_val);
 	        if (result != 0) {
 	            return result;
 	        }
