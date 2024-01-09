@@ -58,35 +58,39 @@ int arm_exception(arm_core p, uint8_t exception) {
     }
 
     else{
-        uint32_t restore_pc = arm_read_register(p, 15);; // to save pc in R14 before exception
-        uint32_t vect_adr; // to define a fixed vector table address of an exception
-
         switch (exception){
         /* ARM manual pages A2-18 to A2-26 */
         case RESET:
-            arm_write_cpsr(p, cpsr); // enter in interruprions mode
-            arm_write_register(p, 15, 0); // go to interruptions handler
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode
+            arm_write_register(p, 15, 0); // reset pc
             break;
+
         case INTERRUPT:
+            uint32_t restore_pc = arm_read_register(p, 15);
             restore_pc += 4; 
-            vect_adr = 0x00000018;
+            arm_write_register(p, 14, restore_pc); // save pc
+            arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode
+            arm_write_register(p, 15, 0x00000018); // go to interruptions handler
+            uint32_t quit_adr = arm_read_register(p, 14) - 4;
+            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
+
         case UNDEFINED_INSTRUCTION:
-            vect_adr = 0x00000004;
+            uint32_t restore_pc = arm_read_register(p, 15);
+            arm_write_register(p, 14, restore_pc); // save pc
+            arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode  
+            arm_write_register(p, 15, 0x00000004); // go to interruptions handler
+            uint32_t quit_adr = arm_read_register(p, 14);
+            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
+
         default:
             warning("UNPREDICTABLE (An undefined exception!)\n");
             return exception;
             break;
         }
-
-        // shared exceptions treatement
-        arm_write_register(p, 14, restore_pc); // save pc
-        arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
-        arm_write_cpsr(p, cpsr); // enter in interruprions mode
-        arm_write_register(p, 15, vect_adr); // go to interruptions handler
-
     }
-
     return exception;
 }
