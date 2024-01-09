@@ -11,8 +11,10 @@ main:
     strb r1, [r0, r2, lsl #2] // Store the value at the address (r0 + r2 * 4) into r11
 
     // Load 32-bit word with register offset
-    ldr r3, [r0, r2, lsl #1] // Load the value at the address (r0 + r2 * 1) into r3
+    ldr r3, [r0, r2, lsl #1] // Load the value at the address (r0 + r2 * 2) into r3
     
+    
+
     swi 0x123456
 
 .data
