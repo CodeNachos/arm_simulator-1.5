@@ -94,7 +94,10 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) ldst1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	dtprcs1$(EXEEXT) dtprcs2$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT) brch1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	brch2$(EXEEXT) prog1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	prog2$(EXEEXT) prog3$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -106,6 +109,12 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+am_brch1_OBJECTS = brch1.$(OBJEXT)
+brch1_OBJECTS = $(am_brch1_OBJECTS)
+brch1_LDADD = $(LDADD)
+am_brch2_OBJECTS = brch2.$(OBJEXT)
+brch2_OBJECTS = $(am_brch2_OBJECTS)
+brch2_LDADD = $(LDADD)
 am_dtprcs1_OBJECTS = dtprcs1.$(OBJEXT)
 dtprcs1_OBJECTS = $(am_dtprcs1_OBJECTS)
 dtprcs1_LDADD = $(LDADD)
@@ -186,13 +195,15 @@ AM_V_CCAS = $(am__v_CCAS_@AM_V@)
 am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
-SOURCES = $(dtprcs1_SOURCES) $(dtprcs2_SOURCES) $(dtprcs3_SOURCES) \
-	$(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
-	$(example4_SOURCES) $(insertion_sort_SOURCES) $(ldst1_SOURCES) \
-	$(ldst2_SOURCES) $(ldst3_SOURCES)
-DIST_SOURCES = $(dtprcs1_SOURCES) $(dtprcs2_SOURCES) \
-	$(dtprcs3_SOURCES) $(example1_SOURCES) $(example2_SOURCES) \
-	$(example3_SOURCES) $(example4_SOURCES) \
+SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
+	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
+	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
+	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
+	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
+	$(prog3_SOURCES) $(prog4_SOURCES)
+DIST_SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
+	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
+	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
 	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
 	$(prog3_SOURCES) $(prog4_SOURCES)
@@ -351,6 +362,14 @@ ldst3_SOURCES = ldst3.s
 dtprcs1_SOURCES = dtprcs1.s
 dtprcs2_SOURCES = dtprcs2.s
 dtprcs3_SOURCES = dtprcs3.s
+brch1_SOURCES = brch1.s
+brch2_SOURCES = brch2.s
+prog1_SOURCES = prog1.s
+prog2_SOURCES = prog2.s
+prog3_SOURCES = prog3.s
+prog4_SOURCES = prog4.s
+bi1_SOURCES = bi1.s
+bi2_SOURCES = bi2.s
 all: all-am
 
 .SUFFIXES:
@@ -387,6 +406,14 @@ $(am__aclocal_m4_deps):
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+
+brch1$(EXEEXT): $(brch1_OBJECTS) $(brch1_DEPENDENCIES) $(EXTRA_brch1_DEPENDENCIES) 
+	@rm -f brch1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(brch1_OBJECTS) $(brch1_LDADD) $(LIBS)
+
+brch2$(EXEEXT): $(brch2_OBJECTS) $(brch2_DEPENDENCIES) $(EXTRA_brch2_DEPENDENCIES) 
+	@rm -f brch2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(brch2_OBJECTS) $(brch2_LDADD) $(LIBS)
 
 dtprcs1$(EXEEXT): $(dtprcs1_OBJECTS) $(dtprcs1_DEPENDENCIES) $(EXTRA_dtprcs1_DEPENDENCIES) 
 	@rm -f dtprcs1$(EXEEXT)
