@@ -85,8 +85,8 @@ int process_load_store_instruction(arm_core p, int ins, int P, int W, int bit_U,
 
 int arm_load_store(arm_core p, uint32_t ins) {
 	//DOC A5-3
-	uint32_t rn = get_bits(ins, 19, 16);
-	rn = arm_read_register(p, rn);
+	uint32_t rn_register = get_bits(ins, 19, 16);
+	uint32_t rn = arm_read_register(p, rn);
     	uint32_t address;
 	uint32_t rd = get_bits(ins, 15, 12);
     	uint32_t rm = get_bits(ins, 3, 0);
@@ -127,13 +127,13 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	        else if(bit_P == 1 &&  bit_W == 1){ //Pre-indexed
 	            index = shift_operation(p, rm_val, shift, shift_imm);
 	            check_U(bit_U, &address, rn,  index);
-	            arm_write_register(p, rn, address);
+	            arm_write_register(p, rn_register, address);
 	        }
 	        else if(bit_P == 0 &&  bit_W == 0){ //Post-indexed
 	            address=rn;
 	            index = shift_operation(p, rm_val, shift, shift_imm);
 	            check_U(bit_U, &rn, rn,  index);
-	            arm_write_register(p, rn, rn);
+	            arm_write_register(p, rn_register, rn);
 	        }    
 	}
 		
@@ -158,12 +158,12 @@ int arm_load_store(arm_core p, uint32_t ins) {
                 else if(get_bits(ins, 22, 21)==0b11){
                     offset_8 = (immedH << 4) | immedL;
                     check_U(bit_U, &address, rn,  offset_8);
-                    arm_write_register(p, rn, address);
+                    arm_write_register(p, rn_register, address);
                 }
                 //Miscellaneous Loads and Stores - Register pre-indexed
                 else if(get_bits(ins, 22, 21)==0b01){
                     check_U(bit_U, &address, rn,  rm_val);
-                    arm_write_register(p, rn, address);
+                    arm_write_register(p, rn_register, address);
                     
                 }
 
@@ -174,14 +174,14 @@ int arm_load_store(arm_core p, uint32_t ins) {
                     address= rn;
                     offset_8 = (immedH << 4) | immedL;
                     check_U(bit_U, &rn, rn,  offset_8);
-                    arm_write_register(p, rn, rn);
+                    arm_write_register(p, rn_register, rn);
                 }
                 //Miscellaneous Loads and Stores - Register post-indexed
                 else if(get_bits(ins, 22, 21) == 0b00){
                         address=rn;
                         check_U(bit_U, &rn, rn,  rm_val);
-                        arm_write_register(p, rn, rn);
-		            }
+                        arm_write_register(p, rn_register, rn);
+		        }
                 }
             
 
