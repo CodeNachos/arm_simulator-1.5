@@ -52,22 +52,22 @@ Contact: Guillaume.Huard@imag.fr
 #define R 22
 
 
-int add_carry(uint32_t a, uint32_t b, uint32_t *result) {
+int add_carry(int32_t a, int32_t b, int32_t *result) {
 	return __builtin_add_overflow(a, b, result) || (*result < a);
 }
 
 
-int add_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+int add_overflow(int32_t a, int32_t b, int32_t *result) {
 	return __builtin_add_overflow(a, b, result);
 }
 
 
-int sub_carry(uint32_t a, uint32_t b, uint32_t *result) {
+int sub_carry(int32_t a, int32_t b, int32_t *result) {
 	return __builtin_sub_overflow(a, b, result) || (*result > a);
 }
 
 
-int sub_overflow(uint32_t a, uint32_t b, uint32_t *result) {
+int sub_overflow(int32_t a, int32_t b, int32_t *result) {
 	return __builtin_sub_overflow(a, b, result);
 }
 
@@ -80,8 +80,8 @@ int data_processing(arm_core p, uint8_t S_bit, uint8_t opcode, uint8_t Rd,
 	uint8_t Z_bit = get_bit(current_CPSR, Z);
 	uint8_t C_bit = get_bit(current_CPSR, C);
 	uint8_t V_bit = get_bit(current_CPSR, V);
-	uint32_t result, tmp, new_CPSR;
-	int change_Rd;
+	uint32_t new_CPSR;
+	int change_Rd, result, tmp;
 
 	/* CALCULATE RESULT BASED OPCODE */
 	switch (opcode) {

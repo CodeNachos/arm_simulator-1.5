@@ -32,8 +32,22 @@
 20/12: Created test files for arm_load_store function
 20/12: Updated Examples/Makefile.am to compile test files for arm_load_store
 
-21/12: Had to convince and prove a team member their code had a problem... 
-	Small but still a problem...
+21/12: Pointed out problems in data processing file
 21/12: Created test files for data_processing
 21/12: Automatizing tests
 21/12: Compeleted automation of 2/3 tests for data_processing
+
+22/12 - 06/01: Vacations
+
+07/01: Organized meeting for tuesday 09/01 and divided proposed task division
+	for the week
+07/01: Studied the possibility of using tracing functions for testing
+
+08/01: Resumed test of the simultor
+08/01: Finished tesing on data processing
+
+09/01: Created simple test programs
+09/01: Helped debug load store instructions
+09/01: Helped debug data process instructions
+
+10/01: Managing repository branches and merging changes to main
