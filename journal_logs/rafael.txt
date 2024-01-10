@@ -1,19 +1,53 @@
 15/12: Started completing memory.c
-15/12: Created werror.h file to manage errors and warnings
+15/12: Created werror.h file to manage general errors and warnings
 15/12: Documenting memory.h and memory.c
 15/12: Completed memory.c however some of the times (not always) i return
         memory_test i get the error: AddressSanitizer:DEADLYSIGNAL
+
 16/12: Previous error is related to my machine environemnt. I confirm the code works.
 	It is something related with the address sanitizer, when it is not used
 	there is no error
+
 17/12: Supervizing data processing and branch instructions code
 17/12: Managing git and pull requestes to main
+
 18/12: Updated Makefile.am to compile arm_branch_other_test.c 
 18/12: Running first tests on arm simulator, stuck with blind debugging, lots of questions
 18/12: Turns out we were using wrong version of gdb
 18/12: Reviewed arm_instructions
+
 19/12: Pushed review of arm_instructions 
 19/12: Reviwed arm_data_processing
 19/12: Testing data_processing
 19/12: Problem on implementation of data processing found. Requested review.
+19/12: Reviewed arm_instructions to fit needed changes of data processing 
 19/12: Testing branch module
+19/12: Corrected lr value assignation on arm_branch_other for BL
+19/12: Simple test of instructions class data processing and branching concluded.
+	More complex tests required
+	Review of instruction swi needed.
+
+20/12: Review and test of current work for arm_load_store
+20/12: Corrected few small errors for current work for arm_load_store
+20/12: Created test files for arm_load_store function
+20/12: Updated Examples/Makefile.am to compile test files for arm_load_store
+
+21/12: Pointed out problems in data processing file
+21/12: Created test files for data_processing
+21/12: Automatizing tests
+21/12: Compeleted automation of 2/3 tests for data_processing
+
+22/12 - 06/01: Vacations
+
+07/01: Organized meeting for tuesday 09/01 and divided proposed task division
+	for the week
+07/01: Studied the possibility of using tracing functions for testing
+
+08/01: Resumed test of the simultor
+08/01: Finished tesing on data processing
+
+09/01: Created simple test programs
+09/01: Helped debug load store instructions
+09/01: Helped debug data process instructions
+
+10/01: Managing repository branches and merging changes to main

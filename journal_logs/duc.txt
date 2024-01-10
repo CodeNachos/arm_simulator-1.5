@@ -1,0 +1,8 @@
+16/12/2023: Started working on arm_data_processing.c
+17/12/2023: Working on arm_data_processing.c
+18/12/2023: Working on arm_data_processing.c
+19/12/2023: Working on arm_data_processing.c
+20/12/2023: Working on arm_data_processing.c
+21/12/2023: Working on arm_data_processing.c
+22/12/2023: Debugged arm_data_processing.c
+23/12/2023: Finished arm_data_processing.c

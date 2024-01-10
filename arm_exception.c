@@ -61,7 +61,7 @@ int arm_exception(arm_core p, uint8_t exception) {
 
     else{
         uint32_t restore_pc;
-        uint32_t quit_adr;
+        
         switch (exception){
         /* ARM manual pages A2-18 to A2-26 */
         case RESET:
@@ -76,9 +76,6 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode  
             arm_write_register(p, 15, 0x0000001C); // go to interruptions handler
-            quit_adr = arm_read_register(p, 14) - 4;
-            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
-            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         case INTERRUPT:
@@ -90,9 +87,6 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
             cpsr = set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000018); // go to interruptions handler
-            quit_adr = arm_read_register(p, 14) - 4;
-            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
-            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         case UNDEFINED_INSTRUCTION:
@@ -103,9 +97,6 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_cpsr(p, cpsr); // enter in interruptions mode 
             cpsr = set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000004); // go to interruptions handler
-            quit_adr = arm_read_register(p, 14);
-            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
-            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
         
         case PREFETCH_ABORT:
@@ -117,9 +108,6 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
             cpsr = set_bit(cpsr, 6); // restore cpsr config back  
             arm_write_register(p, 15, 0x0000000C); // go to interruptions handler
-            quit_adr = arm_read_register(p, 14) - 4;
-            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
-            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         case DATA_ABORT:
@@ -131,9 +119,6 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
             cpsr = set_bit(cpsr, 6); // restore cpsr config back  
             arm_write_register(p, 15, 0x00000010); // go to interruptions handler
-            quit_adr = arm_read_register(p, 14) - 8;
-            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
-            arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         default:

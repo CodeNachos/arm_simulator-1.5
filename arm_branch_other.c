@@ -70,7 +70,7 @@ int arm_branch(arm_core p, uint32_t ins) {
 
 		if(L){ // if L == 1, then BL
 			// linking
-			arm_write_register(p, 14, temp_pc); // LR <- PC
+			arm_write_register(p, 14, temp_pc-4); // LR <- PC
 		}
 		// branching
 		arm_write_register(p, 15, temp_pc+offset); // PC <- PC + offset

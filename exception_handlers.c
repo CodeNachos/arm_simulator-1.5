@@ -1,21 +1,27 @@
 #include "exception_handlers.h"
 
-void reset() {
+
+void reset(arm_core p) {
     ;
 }
 
-void undefined_instruction() {
+void undefined_instruction(arm_core p) {
     ;
 }
 
-void prefetch_abort() {
+void prefetch_abort(arm_core p) {
     ;
 }
 
-void data_abort() {
+void data_abort(arm_core p) {
     ;
 }
 
-void fiq() {
+void fiq(arm_core p) {
     ;
 }
+
+void irq(arm_core p) {
+    ;
+}
+
