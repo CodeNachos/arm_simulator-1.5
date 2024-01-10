@@ -29,9 +29,11 @@ Contact: Guillaume.Huard@imag.fr
 #define CP15_reg1_EEbit 0
 #define Exception_bit_9 (CP15_reg1_EEbit << 9)
 
+//
+
 int arm_exception(arm_core p, uint8_t exception) {
 
-    // since we do not have FIQ and Imprecise Aborts we use a fixed cpsr mode for all exceptions
+    // basic cpsr mode, ignores everything
     uint32_t cpsr = 0x1d3 | Exception_bit_9;
 
     /* As there is no operating system in our simulator, we handle
@@ -65,28 +67,75 @@ int arm_exception(arm_core p, uint8_t exception) {
             arm_write_register(p, 15, 0); // reset pc
             break;
 
+        case FAST_INTERRUPT:
+            uint32_t restore_pc = arm_read_register(p, 15);
+            restore_pc += 4;
+            arm_write_register(p, 14, restore_pc); // save pc
+            arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode  
+            arm_write_register(p, 15, 0x0000001C); // go to interruptions handler
+            uint32_t quit_adr = arm_read_register(p, 14) - 4;
+            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
+            arm_write_register(p, 15, quit_adr); // quit interruption
+            break;
+
         case INTERRUPT:
+            clr_bit(cpsr, 6); // do not disable FIQ
             uint32_t restore_pc = arm_read_register(p, 15);
             restore_pc += 4; 
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
+            set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000018); // go to interruptions handler
             uint32_t quit_adr = arm_read_register(p, 14) - 4;
+            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
             arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         case UNDEFINED_INSTRUCTION:
+            clr_bit(cpsr, 6); // do not disable FIQ
             uint32_t restore_pc = arm_read_register(p, 15);
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
-            arm_write_cpsr(p, cpsr); // enter in interruptions mode  
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode 
+            set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000004); // go to interruptions handler
             uint32_t quit_adr = arm_read_register(p, 14);
+            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
+            arm_write_register(p, 15, quit_adr); // quit interruption
+            break;
+        
+        case PREFETCH_ABORT:
+            clr_bit(cpsr, 6); // do not disable FIQ
+            uint32_t restore_pc = arm_read_register(p, 15);
+            restore_pc += 4;
+            arm_write_register(p, 14, restore_pc); // save pc
+            arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode
+            set_bit(cpsr, 6); // restore cpsr config back  
+            arm_write_register(p, 15, 0x0000000C); // go to interruptions handler
+            uint32_t quit_adr = arm_read_register(p, 14) - 4;
+            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
+            arm_write_register(p, 15, quit_adr); // quit interruption
+            break;
+
+        case DATA_ABORT:
+            clr_bit(cpsr, 6); // do not disable FIQ
+            uint32_t restore_pc = arm_read_register(p, 15);
+            restore_pc += 8;
+            arm_write_register(p, 14, restore_pc); // save pc
+            arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
+            arm_write_cpsr(p, cpsr); // enter in interruptions mode
+            set_bit(cpsr, 6); // restore cpsr config back  
+            arm_write_register(p, 15, 0x00000010); // go to interruptions handler
+            uint32_t quit_adr = arm_read_register(p, 14) - 8;
+            arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
             arm_write_register(p, 15, quit_adr); // quit interruption
             break;
 
         default:
+            // error, an exception is unnknown          
             warning("UNPREDICTABLE (An undefined exception!)\n");
             return exception;
             break;
