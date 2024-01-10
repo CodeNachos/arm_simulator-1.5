@@ -2,11 +2,11 @@
 # execute from gdb after seting target to remote
 # usage:
 # target remote localhost:<port>
-# source Examples/dtprcs2_autotest.gdb
+# source Examples/dtprcs3_autotest.gdb
 
 set endian big
 
-file Examples/dtprcs2
+file Examples/dtprcs3
 load
 
 disassemble

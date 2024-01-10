@@ -40,7 +40,7 @@ main:
 
     @ compute length
 
-    mov r4, #-1
+    mov r4, #0
 
     mov r1,#0 @ text character index
 
