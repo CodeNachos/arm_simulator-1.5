@@ -51,6 +51,8 @@ main:
 
     // Test MVN instruction
     MVN R14, R12  // R14 = NOT R12
+    //Test MRS instruction
+    MRS R0, CPSR  // R0 = CPSR
 
     swi 0x123456
     
