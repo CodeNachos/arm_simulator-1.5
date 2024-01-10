@@ -48,3 +48,6 @@
 
 09/01: Created simple test programs
 09/01: Helped debug load store instructions
+09/01: Helped debug data process instructions
+
+10/01: Managing repository branches and merging changes to main
