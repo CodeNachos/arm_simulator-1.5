@@ -82,13 +82,13 @@ int arm_exception(arm_core p, uint8_t exception) {
             break;
 
         case INTERRUPT:
-            clr_bit(cpsr, 6); // do not disable FIQ
+            cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
             restore_pc += 4; 
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
-            set_bit(cpsr, 6); // restore cpsr config back 
+            cpsr = set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000018); // go to interruptions handler
             quit_adr = arm_read_register(p, 14) - 4;
             arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
@@ -96,12 +96,12 @@ int arm_exception(arm_core p, uint8_t exception) {
             break;
 
         case UNDEFINED_INSTRUCTION:
-            clr_bit(cpsr, 6); // do not disable FIQ
+            cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode 
-            set_bit(cpsr, 6); // restore cpsr config back 
+            cpsr = set_bit(cpsr, 6); // restore cpsr config back 
             arm_write_register(p, 15, 0x00000004); // go to interruptions handler
             quit_adr = arm_read_register(p, 14);
             arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
@@ -109,13 +109,13 @@ int arm_exception(arm_core p, uint8_t exception) {
             break;
         
         case PREFETCH_ABORT:
-            clr_bit(cpsr, 6); // do not disable FIQ
+            cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
             restore_pc += 4;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
-            set_bit(cpsr, 6); // restore cpsr config back  
+            cpsr = set_bit(cpsr, 6); // restore cpsr config back  
             arm_write_register(p, 15, 0x0000000C); // go to interruptions handler
             quit_adr = arm_read_register(p, 14) - 4;
             arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
@@ -123,13 +123,13 @@ int arm_exception(arm_core p, uint8_t exception) {
             break;
 
         case DATA_ABORT:
-            clr_bit(cpsr, 6); // do not disable FIQ
+            cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
             restore_pc += 8;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
-            set_bit(cpsr, 6); // restore cpsr config back  
+            cpsr = set_bit(cpsr, 6); // restore cpsr config back  
             arm_write_register(p, 15, 0x00000010); // go to interruptions handler
             quit_adr = arm_read_register(p, 14) - 8;
             arm_write_cpsr(p, arm_read_spsr(p)); // restore cpsr
