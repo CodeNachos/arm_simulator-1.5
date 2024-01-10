@@ -2,7 +2,7 @@
 .text
 main:
     // Base register addressing mode for Load Multiple (Decrement Before)
-    ldr r0, =data_section   // Load the base address of data_section into r0
+    ldr r0, =findata   // Load the base address of data_section into r0
 
     // Load multiple 32-bit words with register offset (Decrement Before)
     mov r1, #4
@@ -13,8 +13,8 @@ main:
 
     // Store multiple 32-bit words with register offset (Decrement Before)
     mov r1, #4
-    stmdb r0!, {r2, r3, r4, r5}   // Store the values from r2, r3, r4, r5 to the addresses (r0 - 12, r0 - 8, r0 - 4, r0)
-
+    stmdb r0!, {r2, r3, r4, r5}   // Store the values from r2, r3, r4, r5 to the addresses (r0 -16, r0 - 12, r0 - 8, r0 - 4)
+                                                                                         //f0         f4     f8       fc
     swi 0x123456
 
 .data
@@ -23,3 +23,4 @@ data_section:
     .word 0x87654321      // 32-bit value
     .word 0xABCDEF01      // 32-bit value
     .word 0x76543210      // 32-bit value
+findata: 
