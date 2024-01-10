@@ -74,7 +74,7 @@ int process_load_store_instruction(arm_core p, int ins, int P, int W, int bit_U,
         check_U(bit_U, address, *rn, value);
         arm_write_register(p, rn_register, *address);
     } else if (P == 0 && W == 0) { //post-indexed
-        *address = *rn;
+        *address = *rn; //value of addresse is value of pointor to rn
         check_U(bit_U, rn, *rn, value);
         arm_write_register(p, rn_register, *rn);
     } else {
@@ -86,20 +86,20 @@ int process_load_store_instruction(arm_core p, int ins, int P, int W, int bit_U,
 int arm_load_store(arm_core p, uint32_t ins) {
 	//DOC A5-3
 	uint32_t rn_register = get_bits(ins, 19, 16);
-	uint32_t rn = arm_read_register(p, rn);
-    	uint32_t address;
+	uint32_t rn = arm_read_register(p, rn_register); //r0 = 3789...
+    uint32_t address;
 	uint32_t rd = get_bits(ins, 15, 12);
-    	uint32_t rm = get_bits(ins, 3, 0);
-    	uint32_t rm_val = arm_read_register(p, rm);
+    uint32_t rm = get_bits(ins, 3, 0);
+    uint32_t rm_val = arm_read_register(p, rm);
 	int bit_L = get_bit(ins, 20);
 	int bit_W = get_bit(ins, 21);
 	int bit_B = get_bit(ins, 22);
 	int bit_U = get_bit(ins, 23);
 	int bit_P = get_bit(ins, 24);
-    	uint32_t offset_12 = get_bits(ins, 11, 0);
+    uint32_t offset_12 = get_bits(ins, 11, 0);
     
 	/*  Immediate : */
-	if (get_bits(ins, 27, 25) == 0b010) {
+	if (get_bits(ins, 27, 25) == 0b010) {                                                 //pointor to rn
 	        int result = process_load_store_instruction(p, ins, bit_P, bit_W, bit_U, &address, &rn , rn_register, offset_12);
 	        if (result != 0) {
 	            return result;
@@ -139,9 +139,9 @@ int arm_load_store(arm_core p, uint32_t ins) {
 		
     //LDRH & STRH
     else if(get_bits(ins, 27, 25) == 0b000 && get_bit(ins, 7) == 0b1 && get_bit(ins, 4) == 0b1){ 
-            uint32_t immedH = get_bits(ins, 11, 8);
-	    uint32_t immedL = get_bits(ins, 3, 0);
-            uint32_t offset_8;
+        uint32_t immedH = get_bits(ins, 11, 8);
+	uint32_t immedL = get_bits(ins, 3, 0);
+        uint32_t offset_8;
             
 
             if ( bit_P==1 ){
@@ -186,7 +186,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
             
 
             int bit_S = get_bit(ins, 6);
-	    int bit_H = get_bit(ins, 5);
+	        int bit_H = get_bit(ins, 5);
 
             if(bit_L==0 && bit_S==0 && bit_H==1){ //STRH
                 warning("writing address %d\n", address);
@@ -223,7 +223,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
             warning("writing address %d\n", address);
             if (bit_B) { //STRB
                 uint8_t octet;
-		octet= arm_read_register(p, rd);
+		        octet= arm_read_register(p, rd);
                 arm_write_byte(p, address, octet);		
             }
             else {
