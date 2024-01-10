@@ -61,6 +61,7 @@ int arm_exception(arm_core p, uint8_t exception) {
 
     else{
         uint32_t restore_pc;
+        
         switch (exception){
         /* ARM manual pages A2-18 to A2-26 */
         case RESET:
