@@ -91,7 +91,6 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@noinst_PROGRAMS = example1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) expt$(EXEEXT)
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) ldst1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	dtprcs1$(EXEEXT) dtprcs2$(EXEEXT) \
@@ -137,9 +136,6 @@ example3_LDADD = $(LDADD)
 am_example4_OBJECTS = example4.$(OBJEXT)
 example4_OBJECTS = $(am_example4_OBJECTS)
 example4_LDADD = $(LDADD)
-am_expt_OBJECTS = expt.$(OBJEXT) handlers.$(OBJEXT)
-expt_OBJECTS = $(am_expt_OBJECTS)
-expt_LDADD = $(LDADD)
 am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT) \
 	my_syscalls.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
@@ -359,7 +355,6 @@ example2_SOURCES = example2.s
 example3_SOURCES = example3.s
 example4_SOURCES = example4.s
 insertion_sort_SOURCES = insertion_sort.c my_syscalls.s my_syscalls.h
-expt_SOURCES = expt.s handlers.s  
 EXTRA_DIST = linker_script
 ldst1_SOURCES = ldst1.s
 ldst2_SOURCES = ldst2.s
@@ -447,10 +442,6 @@ example3$(EXEEXT): $(example3_OBJECTS) $(example3_DEPENDENCIES) $(EXTRA_example3
 example4$(EXEEXT): $(example4_OBJECTS) $(example4_DEPENDENCIES) $(EXTRA_example4_DEPENDENCIES) 
 	@rm -f example4$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(example4_OBJECTS) $(example4_LDADD) $(LIBS)
-
-expt$(EXEEXT): $(expt_OBJECTS) $(expt_DEPENDENCIES) $(EXTRA_expt_DEPENDENCIES) 
-	@rm -f expt$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(expt_OBJECTS) $(expt_LDADD) $(LIBS)
 
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)
