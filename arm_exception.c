@@ -138,8 +138,8 @@ int arm_exception(arm_core p, uint8_t exception) {
 
         default:
             // not an exception       
-            return exception;
             break;
         }
     }
+    return exception;
 }
