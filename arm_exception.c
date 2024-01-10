@@ -135,11 +135,9 @@ int arm_exception(arm_core p, uint8_t exception) {
             break;
 
         default:
-            // error, an exception is unnknown          
-            warning("UNPREDICTABLE (An undefined exception!)\n");
+            // not an exception       
             return exception;
             break;
         }
     }
-    return exception;
 }
