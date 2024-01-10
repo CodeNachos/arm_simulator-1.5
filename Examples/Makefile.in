@@ -92,6 +92,13 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@	example2$(EXEEXT) example3$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	example4$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) expt$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	insertion_sort$(EXEEXT) ldst1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	ldst2$(EXEEXT) ldst3$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	dtprcs1$(EXEEXT) dtprcs2$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT) brch1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	brch2$(EXEEXT) prog1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	prog2$(EXEEXT) prog3$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -103,6 +110,21 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 PROGRAMS = $(noinst_PROGRAMS)
+am_brch1_OBJECTS = brch1.$(OBJEXT)
+brch1_OBJECTS = $(am_brch1_OBJECTS)
+brch1_LDADD = $(LDADD)
+am_brch2_OBJECTS = brch2.$(OBJEXT)
+brch2_OBJECTS = $(am_brch2_OBJECTS)
+brch2_LDADD = $(LDADD)
+am_dtprcs1_OBJECTS = dtprcs1.$(OBJEXT)
+dtprcs1_OBJECTS = $(am_dtprcs1_OBJECTS)
+dtprcs1_LDADD = $(LDADD)
+am_dtprcs2_OBJECTS = dtprcs2.$(OBJEXT)
+dtprcs2_OBJECTS = $(am_dtprcs2_OBJECTS)
+dtprcs2_LDADD = $(LDADD)
+am_dtprcs3_OBJECTS = dtprcs3.$(OBJEXT)
+dtprcs3_OBJECTS = $(am_dtprcs3_OBJECTS)
+dtprcs3_LDADD = $(LDADD)
 am_example1_OBJECTS = example1.$(OBJEXT)
 example1_OBJECTS = $(am_example1_OBJECTS)
 example1_LDADD = $(LDADD)
@@ -122,6 +144,27 @@ am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT) \
 	my_syscalls.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
 insertion_sort_LDADD = $(LDADD)
+am_ldst1_OBJECTS = ldst1.$(OBJEXT)
+ldst1_OBJECTS = $(am_ldst1_OBJECTS)
+ldst1_LDADD = $(LDADD)
+am_ldst2_OBJECTS = ldst2.$(OBJEXT)
+ldst2_OBJECTS = $(am_ldst2_OBJECTS)
+ldst2_LDADD = $(LDADD)
+am_ldst3_OBJECTS = ldst3.$(OBJEXT)
+ldst3_OBJECTS = $(am_ldst3_OBJECTS)
+ldst3_LDADD = $(LDADD)
+am_prog1_OBJECTS = prog1.$(OBJEXT)
+prog1_OBJECTS = $(am_prog1_OBJECTS)
+prog1_LDADD = $(LDADD)
+am_prog2_OBJECTS = prog2.$(OBJEXT)
+prog2_OBJECTS = $(am_prog2_OBJECTS)
+prog2_LDADD = $(LDADD)
+am_prog3_OBJECTS = prog3.$(OBJEXT)
+prog3_OBJECTS = $(am_prog3_OBJECTS)
+prog3_LDADD = $(LDADD)
+am_prog4_OBJECTS = prog4.$(OBJEXT)
+prog4_OBJECTS = $(am_prog4_OBJECTS)
+prog4_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -156,11 +199,18 @@ AM_V_CCAS = $(am__v_CCAS_@AM_V@)
 am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
 am__v_CCAS_1 = 
-SOURCES = $(example1_SOURCES) $(example2_SOURCES) $(example3_SOURCES) \
-	$(example4_SOURCES) $(expt_SOURCES) $(insertion_sort_SOURCES)
-DIST_SOURCES = $(example1_SOURCES) $(example2_SOURCES) \
-	$(example3_SOURCES) $(example4_SOURCES) $(expt_SOURCES) \
-	$(insertion_sort_SOURCES)
+SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
+	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
+	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
+	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
+	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
+	$(prog3_SOURCES) $(prog4_SOURCES)
+DIST_SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
+	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
+	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
+	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
+	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
+	$(prog3_SOURCES) $(prog4_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -311,6 +361,20 @@ example4_SOURCES = example4.s
 insertion_sort_SOURCES = insertion_sort.c my_syscalls.s my_syscalls.h
 expt_SOURCES = expt.s exception_handlers.h
 EXTRA_DIST = linker_script
+ldst1_SOURCES = ldst1.s
+ldst2_SOURCES = ldst2.s
+ldst3_SOURCES = ldst3.s
+dtprcs1_SOURCES = dtprcs1.s
+dtprcs2_SOURCES = dtprcs2.s
+dtprcs3_SOURCES = dtprcs3.s
+brch1_SOURCES = brch1.s
+brch2_SOURCES = brch2.s
+prog1_SOURCES = prog1.s
+prog2_SOURCES = prog2.s
+prog3_SOURCES = prog3.s
+prog4_SOURCES = prog4.s
+bi1_SOURCES = bi1.s
+bi2_SOURCES = bi2.s
 all: all-am
 
 .SUFFIXES:
@@ -348,6 +412,26 @@ $(am__aclocal_m4_deps):
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
 
+brch1$(EXEEXT): $(brch1_OBJECTS) $(brch1_DEPENDENCIES) $(EXTRA_brch1_DEPENDENCIES) 
+	@rm -f brch1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(brch1_OBJECTS) $(brch1_LDADD) $(LIBS)
+
+brch2$(EXEEXT): $(brch2_OBJECTS) $(brch2_DEPENDENCIES) $(EXTRA_brch2_DEPENDENCIES) 
+	@rm -f brch2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(brch2_OBJECTS) $(brch2_LDADD) $(LIBS)
+
+dtprcs1$(EXEEXT): $(dtprcs1_OBJECTS) $(dtprcs1_DEPENDENCIES) $(EXTRA_dtprcs1_DEPENDENCIES) 
+	@rm -f dtprcs1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs1_OBJECTS) $(dtprcs1_LDADD) $(LIBS)
+
+dtprcs2$(EXEEXT): $(dtprcs2_OBJECTS) $(dtprcs2_DEPENDENCIES) $(EXTRA_dtprcs2_DEPENDENCIES) 
+	@rm -f dtprcs2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs2_OBJECTS) $(dtprcs2_LDADD) $(LIBS)
+
+dtprcs3$(EXEEXT): $(dtprcs3_OBJECTS) $(dtprcs3_DEPENDENCIES) $(EXTRA_dtprcs3_DEPENDENCIES) 
+	@rm -f dtprcs3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(dtprcs3_OBJECTS) $(dtprcs3_LDADD) $(LIBS)
+
 example1$(EXEEXT): $(example1_OBJECTS) $(example1_DEPENDENCIES) $(EXTRA_example1_DEPENDENCIES) 
 	@rm -f example1$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(example1_OBJECTS) $(example1_LDADD) $(LIBS)
@@ -371,6 +455,34 @@ expt$(EXEEXT): $(expt_OBJECTS) $(expt_DEPENDENCIES) $(EXTRA_expt_DEPENDENCIES)
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(insertion_sort_OBJECTS) $(insertion_sort_LDADD) $(LIBS)
+
+ldst1$(EXEEXT): $(ldst1_OBJECTS) $(ldst1_DEPENDENCIES) $(EXTRA_ldst1_DEPENDENCIES) 
+	@rm -f ldst1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst1_OBJECTS) $(ldst1_LDADD) $(LIBS)
+
+ldst2$(EXEEXT): $(ldst2_OBJECTS) $(ldst2_DEPENDENCIES) $(EXTRA_ldst2_DEPENDENCIES) 
+	@rm -f ldst2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst2_OBJECTS) $(ldst2_LDADD) $(LIBS)
+
+ldst3$(EXEEXT): $(ldst3_OBJECTS) $(ldst3_DEPENDENCIES) $(EXTRA_ldst3_DEPENDENCIES) 
+	@rm -f ldst3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst3_OBJECTS) $(ldst3_LDADD) $(LIBS)
+
+prog1$(EXEEXT): $(prog1_OBJECTS) $(prog1_DEPENDENCIES) $(EXTRA_prog1_DEPENDENCIES) 
+	@rm -f prog1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(prog1_OBJECTS) $(prog1_LDADD) $(LIBS)
+
+prog2$(EXEEXT): $(prog2_OBJECTS) $(prog2_DEPENDENCIES) $(EXTRA_prog2_DEPENDENCIES) 
+	@rm -f prog2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(prog2_OBJECTS) $(prog2_LDADD) $(LIBS)
+
+prog3$(EXEEXT): $(prog3_OBJECTS) $(prog3_DEPENDENCIES) $(EXTRA_prog3_DEPENDENCIES) 
+	@rm -f prog3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(prog3_OBJECTS) $(prog3_LDADD) $(LIBS)
+
+prog4$(EXEEXT): $(prog4_OBJECTS) $(prog4_DEPENDENCIES) $(EXTRA_prog4_DEPENDENCIES) 
+	@rm -f prog4$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(prog4_OBJECTS) $(prog4_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
