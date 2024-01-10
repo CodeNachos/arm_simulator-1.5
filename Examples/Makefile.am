@@ -25,7 +25,7 @@ example2_SOURCES=example2.s
 example3_SOURCES=example3.s
 example4_SOURCES=example4.s
 insertion_sort_SOURCES=insertion_sort.c my_syscalls.s my_syscalls.h
-expt_SOURCES=expt.s exception_handlers.h
+expt_SOURCES=expt.s handlers.s  
 
 
 EXTRA_DIST=linker_script
