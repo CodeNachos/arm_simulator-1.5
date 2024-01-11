@@ -71,7 +71,6 @@ int arm_exception(arm_core p, uint8_t exception) {
 
         case FAST_INTERRUPT:
             restore_pc = arm_read_register(p, 15);
-            restore_pc += 4;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode  
@@ -81,7 +80,6 @@ int arm_exception(arm_core p, uint8_t exception) {
         case INTERRUPT:
             cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
-            restore_pc += 4; 
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
@@ -91,7 +89,7 @@ int arm_exception(arm_core p, uint8_t exception) {
 
         case UNDEFINED_INSTRUCTION:
             cpsr = clr_bit(cpsr, 6); // do not disable FIQ
-            restore_pc = arm_read_register(p, 15);
+            restore_pc = arm_read_register(p, 15) - 4;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode 
@@ -102,7 +100,6 @@ int arm_exception(arm_core p, uint8_t exception) {
         case PREFETCH_ABORT:
             cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
-            restore_pc += 4;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
@@ -113,7 +110,6 @@ int arm_exception(arm_core p, uint8_t exception) {
         case DATA_ABORT:
             cpsr = clr_bit(cpsr, 6); // do not disable FIQ
             restore_pc = arm_read_register(p, 15);
-            restore_pc += 8;
             arm_write_register(p, 14, restore_pc); // save pc
             arm_write_spsr(p, arm_read_cpsr(p)); // save cpsr
             arm_write_cpsr(p, cpsr); // enter in interruptions mode
