@@ -117,6 +117,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	/* Scaled register : */
 	else if (get_bits(ins, 27, 25)==0b011 && !get_bit(ins, 4)) {
 	        uint32_t index;
+
 		uint32_t shift_imm = get_bits(ins, 11, 7);
 		uint8_t shift = get_bits(ins, 6, 5);
 			
@@ -200,11 +201,11 @@ int arm_load_store(arm_core p, uint32_t ins) {
                 arm_write_register(p, rd, half);
             }
             else return UNDEFINED_INSTRUCTION;
+      
             return SUCCESSFULLY_DECODED;
     }
 	
      //LOAD & STORE
-
         if (bit_L) { //load
             warning("loading address %d\n", address);
             if (bit_B) { //LDRB
@@ -232,7 +233,7 @@ int arm_load_store(arm_core p, uint32_t ins) {
                 arm_write_word(p, address, mot);
             }
         }
-    
+
     return 0;
 }
 

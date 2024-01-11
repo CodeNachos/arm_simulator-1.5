@@ -1,2 +1,8 @@
 15/12: started working on registers.c
 16/12: Finished working on registers.c
+19/12: Debugging for data processing
+20/12: Debugging for load/store
+21/12: Debugging for load/store MULTIPLE
+25/12: Reworked on registers.c to make it less complicated
+08/01: Tests file written for BRANCH (bi1.s and bi2.s)
+09/01: Debugging load/store and testing

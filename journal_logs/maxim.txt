@@ -1,0 +1,10 @@
+17/12 Started working on arm_branch_other module
+17/12 Done the branching function, started MRS and SWI
+17/12 Questions about SWI function, need to clarify
+18/12 SWI is clarified, it's done
+18/12 Working on arm_branch_other tests
+18/12 Done first version of branch module
+18/12 Running first tests on arm simulator, stuck with blind debugging, lots of questions
+08/01 Started IRQ module
+09/01 Done IRQ module
+09/01 Writting test files for load/store

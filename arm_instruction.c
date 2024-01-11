@@ -27,6 +27,7 @@ Contact: Guillaume.Huard@imag.fr
 #include "arm_branch_other.h"
 #include "arm_constants.h"
 #include "util.h"
+#include "debug.h"
 
 int instruction_cond(arm_core p, uint32_t inst){ //la condition doit etre remplie afin d'executer l'instruction
     uint32_t code = inst >>28; 
@@ -78,7 +79,7 @@ int instruction_cond(arm_core p, uint32_t inst){ //la condition doit etre rempli
         return 1;
         break;
     default:
-        printf("Undefined condition\n");
+        warning("Undefined condition\n");
         return 0;
         break;
     }
@@ -149,3 +150,5 @@ int arm_step(arm_core p) {
     }
     return result;
 }
+
+
