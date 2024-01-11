@@ -97,7 +97,7 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT) brch1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	brch2$(EXEEXT) prog1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	prog2$(EXEEXT) prog3$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT) excpt$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -136,6 +136,9 @@ example3_LDADD = $(LDADD)
 am_example4_OBJECTS = example4.$(OBJEXT)
 example4_OBJECTS = $(am_example4_OBJECTS)
 example4_LDADD = $(LDADD)
+am_excpt_OBJECTS = excpt.$(OBJEXT) handlers.$(OBJEXT)
+excpt_OBJECTS = $(am_excpt_OBJECTS)
+excpt_LDADD = $(LDADD)
 am_insertion_sort_OBJECTS = insertion_sort.$(OBJEXT) \
 	my_syscalls.$(OBJEXT)
 insertion_sort_OBJECTS = $(am_insertion_sort_OBJECTS)
@@ -198,15 +201,15 @@ am__v_CCAS_1 =
 SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
 	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
 	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
-	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
-	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
-	$(prog3_SOURCES) $(prog4_SOURCES)
+	$(excpt_SOURCES) $(insertion_sort_SOURCES) $(ldst1_SOURCES) \
+	$(ldst2_SOURCES) $(ldst3_SOURCES) $(prog1_SOURCES) \
+	$(prog2_SOURCES) $(prog3_SOURCES) $(prog4_SOURCES)
 DIST_SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
 	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
 	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
-	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
-	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
-	$(prog3_SOURCES) $(prog4_SOURCES)
+	$(excpt_SOURCES) $(insertion_sort_SOURCES) $(ldst1_SOURCES) \
+	$(ldst2_SOURCES) $(ldst3_SOURCES) $(prog1_SOURCES) \
+	$(prog2_SOURCES) $(prog3_SOURCES) $(prog4_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -368,8 +371,7 @@ prog1_SOURCES = prog1.s
 prog2_SOURCES = prog2.s
 prog3_SOURCES = prog3.s
 prog4_SOURCES = prog4.s
-bi1_SOURCES = bi1.s
-bi2_SOURCES = bi2.s
+excpt_SOURCES = excpt.s handlers.s
 all: all-am
 
 .SUFFIXES:
@@ -442,6 +444,10 @@ example3$(EXEEXT): $(example3_OBJECTS) $(example3_DEPENDENCIES) $(EXTRA_example3
 example4$(EXEEXT): $(example4_OBJECTS) $(example4_DEPENDENCIES) $(EXTRA_example4_DEPENDENCIES) 
 	@rm -f example4$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(example4_OBJECTS) $(example4_LDADD) $(LIBS)
+
+excpt$(EXEEXT): $(excpt_OBJECTS) $(excpt_DEPENDENCIES) $(EXTRA_excpt_DEPENDENCIES) 
+	@rm -f excpt$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(excpt_OBJECTS) $(excpt_LDADD) $(LIBS)
 
 insertion_sort$(EXEEXT): $(insertion_sort_OBJECTS) $(insertion_sort_DEPENDENCIES) $(EXTRA_insertion_sort_DEPENDENCIES) 
 	@rm -f insertion_sort$(EXEEXT)

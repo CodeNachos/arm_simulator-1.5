@@ -9,7 +9,6 @@ main:
     mov r2, #0x04
     str r1, [r2]
 
-    subs lr, pc, #8
     // raising undefined instruction
     ldrsh r3, [fp, #-12]
 
