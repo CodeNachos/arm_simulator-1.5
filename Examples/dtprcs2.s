@@ -51,8 +51,9 @@ main:
 
     // Test MVN instruction
     MVN R14, R12  // R14 = NOT R12
-    //Test MRS instruction
-    MRS R0, CPSR  // R0 = CPSR
+
+    //Test MSR instruction
+    MSR CPSR_f, #0xF0000000 // Change the flags to be all ones
 
     swi 0x123456
     
