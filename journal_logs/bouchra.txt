@@ -1,0 +1,10 @@
+16/12/2023: Started working on arm_instructions.c
+17/12/2023: Working on arm_instructions.c
+18/12/2023: Debugged on arm_instructions.c
+20/12/2023: Helping Sanaa to understund some informations on the documentation of arm_load_store
+21/12/2023: fixing some issues in arm_load_store code
+22/12/2023: Debugged arm_load_store.c
+vacances
+08/01/2024: Debugged arm_load_store.c
+10/01/2024: writing test files for ldmib/stmib ldmda/stmda and testing 
+11/01/2024: working on presentation
