@@ -1,0 +1,12 @@
+17/12/2023: Started working on arm_load_store.c
+17/12/2023: Working on arm_load_store.c
+18/12/2023: Working on arm_load_store.c
+19/12/2023: Working on arm_load_store.c
+20/12/2023: Working on arm_load_store.c
+21/12/2023: Working on arm_load_store.c
+22/12/2023: Debugged arm_load_store.c
+vacances
+08/01/2024: rewrite (added missing cases to ldm/stm after Youssef's review) arm_load_store.c
+09/01/2024: debugged code
+10/01/2024: writing test files for ldmib/stmib ldmda/stmda and testing with Bouchra
+11/01/2024: finished arm_load_store
