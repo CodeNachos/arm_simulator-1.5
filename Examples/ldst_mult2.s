@@ -9,7 +9,7 @@ main:
     ldmia r0!, {r2, r3, r4, r5}   // Load the values at the address (r0, r0 + 4, r0 + 8, r0 + 12) into r2, r3, r4, r5
 
     // Base register addressing mode for Store Multiple
-    ldr r0, =data_section   // Load the base address of data_section into r0
+    // ldr r0, =data_section   // Load the base address of data_section into r0
 
     // Store multiple 32-bit words with register offset (Increment After)
     mov r1, #4

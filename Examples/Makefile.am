@@ -16,7 +16,7 @@ AM_LDFLAGS+=-Wl,-EB
 
 if HAVE_ARM_COMPILER
 
-noinst_PROGRAMS=example1 example2 example3 example4 insertion_sort ldst1 ldst2 ldst3 dtprcs1 dtprcs2 dtprcs3 brch1 brch2 prog1 prog2 prog3 prog4
+noinst_PROGRAMS=example1 example2 example3 example4 insertion_sort ldst1 ldst2 ldst3 dtprcs1 dtprcs2 dtprcs3 brch1 brch2 prog1 prog2 prog3 prog4 ldst_mult1 ldst_mult2 ldst_mult_PC mult3 mult4
 
 
 all-am: $(PROGS)
@@ -47,8 +47,12 @@ prog1_SOURCES=prog1.s
 prog2_SOURCES=prog2.s
 prog3_SOURCES=prog3.s
 prog4_SOURCES=prog4.s
-bi1_SOURCES=bi1.s
-bi2_SOURCES=bi2.s
+
+ldst_mult1_SOURCES=ldst_mult1.s
+ldst_mult2_SOURCES=ldst_mult2.s
+ldst_mult_PC_SOURCES=ldst_mult_PC.s
+mult3_SOURCES=mult3.s
+mult4_SOURCES=mult4.s
 
 clean-local:
 	$(RM) $(PROGS)

@@ -190,12 +190,10 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	        int bit_H = get_bit(ins, 5);
 
             if(bit_L==0 && bit_S==0 && bit_H==1){ //STRH
-                warning("writing address %d\n", address);
                 uint16_t half = arm_read_register(p, rd);
                 arm_write_half(p, address, half);
             }
             else if(bit_L==1 && bit_S==0 && bit_H==1){//LDRH
-                warning("loading address %d\n", address);
                 uint16_t half;
                 arm_read_half(p, address, &half);
                 arm_write_register(p, rd, half);
@@ -207,7 +205,6 @@ int arm_load_store(arm_core p, uint32_t ins) {
 	
      //LOAD & STORE
         if (bit_L) { //load
-            warning("loading address %d\n", address);
             if (bit_B) { //LDRB
                 uint8_t octet;
                 arm_read_byte(p, address, &octet);
@@ -221,7 +218,6 @@ int arm_load_store(arm_core p, uint32_t ins) {
         }
 
         else { //store
-            warning("writing address %d\n", address);
             if (bit_B) { //STRB
                 uint8_t octet;
 		        octet= arm_read_register(p, rd);

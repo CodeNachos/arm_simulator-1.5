@@ -48,6 +48,14 @@
 
 09/01: Created simple test programs
 09/01: Helped debug load store instructions
-09/01: Helped debug data process instructions
+09/01: Pointed out errors and helped debug data process instructions
 
 10/01: Managing repository branches and merging changes to main
+10/01: Helped on the implementation of exceptions
+10/01: For some reason we cannot make send_irq program to work on gdb.
+	Exceptions are raised and treated correctly when sent by the simulator itself.
+	Vector table not populated yet.
+
+11/01: Managing repository, merging final changes to main branch and verifying
+	that it still works
+11/01: 

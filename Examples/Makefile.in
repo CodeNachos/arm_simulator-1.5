@@ -97,7 +97,10 @@ host_triplet = @host@
 @HAVE_ARM_COMPILER_TRUE@	dtprcs3$(EXEEXT) brch1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	brch2$(EXEEXT) prog1$(EXEEXT) \
 @HAVE_ARM_COMPILER_TRUE@	prog2$(EXEEXT) prog3$(EXEEXT) \
-@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT)
+@HAVE_ARM_COMPILER_TRUE@	prog4$(EXEEXT) ldst_mult1$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	ldst_mult2$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	ldst_mult_PC$(EXEEXT) mult3$(EXEEXT) \
+@HAVE_ARM_COMPILER_TRUE@	mult4$(EXEEXT)
 subdir = Examples
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -149,6 +152,21 @@ ldst2_LDADD = $(LDADD)
 am_ldst3_OBJECTS = ldst3.$(OBJEXT)
 ldst3_OBJECTS = $(am_ldst3_OBJECTS)
 ldst3_LDADD = $(LDADD)
+am_ldst_mult1_OBJECTS = ldst_mult1.$(OBJEXT)
+ldst_mult1_OBJECTS = $(am_ldst_mult1_OBJECTS)
+ldst_mult1_LDADD = $(LDADD)
+am_ldst_mult2_OBJECTS = ldst_mult2.$(OBJEXT)
+ldst_mult2_OBJECTS = $(am_ldst_mult2_OBJECTS)
+ldst_mult2_LDADD = $(LDADD)
+am_ldst_mult_PC_OBJECTS = ldst_mult_PC.$(OBJEXT)
+ldst_mult_PC_OBJECTS = $(am_ldst_mult_PC_OBJECTS)
+ldst_mult_PC_LDADD = $(LDADD)
+am_mult3_OBJECTS = mult3.$(OBJEXT)
+mult3_OBJECTS = $(am_mult3_OBJECTS)
+mult3_LDADD = $(LDADD)
+am_mult4_OBJECTS = mult4.$(OBJEXT)
+mult4_OBJECTS = $(am_mult4_OBJECTS)
+mult4_LDADD = $(LDADD)
 am_prog1_OBJECTS = prog1.$(OBJEXT)
 prog1_OBJECTS = $(am_prog1_OBJECTS)
 prog1_LDADD = $(LDADD)
@@ -199,14 +217,18 @@ SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
 	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
 	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
-	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
-	$(prog3_SOURCES) $(prog4_SOURCES)
+	$(ldst3_SOURCES) $(ldst_mult1_SOURCES) $(ldst_mult2_SOURCES) \
+	$(ldst_mult_PC_SOURCES) $(mult3_SOURCES) $(mult4_SOURCES) \
+	$(prog1_SOURCES) $(prog2_SOURCES) $(prog3_SOURCES) \
+	$(prog4_SOURCES)
 DIST_SOURCES = $(brch1_SOURCES) $(brch2_SOURCES) $(dtprcs1_SOURCES) \
 	$(dtprcs2_SOURCES) $(dtprcs3_SOURCES) $(example1_SOURCES) \
 	$(example2_SOURCES) $(example3_SOURCES) $(example4_SOURCES) \
 	$(insertion_sort_SOURCES) $(ldst1_SOURCES) $(ldst2_SOURCES) \
-	$(ldst3_SOURCES) $(prog1_SOURCES) $(prog2_SOURCES) \
-	$(prog3_SOURCES) $(prog4_SOURCES)
+	$(ldst3_SOURCES) $(ldst_mult1_SOURCES) $(ldst_mult2_SOURCES) \
+	$(ldst_mult_PC_SOURCES) $(mult3_SOURCES) $(mult4_SOURCES) \
+	$(prog1_SOURCES) $(prog2_SOURCES) $(prog3_SOURCES) \
+	$(prog4_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -359,7 +381,6 @@ load_test_SOURCES = load_test.s
 insertion_sort_SOURCES = insertion_sort.c my_syscalls.s my_syscalls.h
 EXTRA_DIST = linker_script
 ldst1_SOURCES = ldst1.s
-ldst2_SOURCES = ldst2.s
 ldst3_SOURCES = ldst3.s
 dtprcs1_SOURCES = dtprcs1.s
 dtprcs2_SOURCES = dtprcs2.s
@@ -370,8 +391,11 @@ prog1_SOURCES = prog1.s
 prog2_SOURCES = prog2.s
 prog3_SOURCES = prog3.s
 prog4_SOURCES = prog4.s
-bi1_SOURCES = bi1.s
-bi2_SOURCES = bi2.s
+ldst_mult1_SOURCES = ldst_mult1.s
+ldst_mult2_SOURCES = ldst_mult2.s
+ldst_mult_PC_SOURCES = ldst_mult_PC.s
+mult3_SOURCES = mult3.s
+mult4_SOURCES = mult4.s
 all: all-am
 
 .SUFFIXES:
@@ -460,6 +484,26 @@ ldst2$(EXEEXT): $(ldst2_OBJECTS) $(ldst2_DEPENDENCIES) $(EXTRA_ldst2_DEPENDENCIE
 ldst3$(EXEEXT): $(ldst3_OBJECTS) $(ldst3_DEPENDENCIES) $(EXTRA_ldst3_DEPENDENCIES) 
 	@rm -f ldst3$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(ldst3_OBJECTS) $(ldst3_LDADD) $(LIBS)
+
+ldst_mult1$(EXEEXT): $(ldst_mult1_OBJECTS) $(ldst_mult1_DEPENDENCIES) $(EXTRA_ldst_mult1_DEPENDENCIES) 
+	@rm -f ldst_mult1$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst_mult1_OBJECTS) $(ldst_mult1_LDADD) $(LIBS)
+
+ldst_mult2$(EXEEXT): $(ldst_mult2_OBJECTS) $(ldst_mult2_DEPENDENCIES) $(EXTRA_ldst_mult2_DEPENDENCIES) 
+	@rm -f ldst_mult2$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst_mult2_OBJECTS) $(ldst_mult2_LDADD) $(LIBS)
+
+ldst_mult_PC$(EXEEXT): $(ldst_mult_PC_OBJECTS) $(ldst_mult_PC_DEPENDENCIES) $(EXTRA_ldst_mult_PC_DEPENDENCIES) 
+	@rm -f ldst_mult_PC$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(ldst_mult_PC_OBJECTS) $(ldst_mult_PC_LDADD) $(LIBS)
+
+mult3$(EXEEXT): $(mult3_OBJECTS) $(mult3_DEPENDENCIES) $(EXTRA_mult3_DEPENDENCIES) 
+	@rm -f mult3$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mult3_OBJECTS) $(mult3_LDADD) $(LIBS)
+
+mult4$(EXEEXT): $(mult4_OBJECTS) $(mult4_DEPENDENCIES) $(EXTRA_mult4_DEPENDENCIES) 
+	@rm -f mult4$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(mult4_OBJECTS) $(mult4_LDADD) $(LIBS)
 
 prog1$(EXEEXT): $(prog1_OBJECTS) $(prog1_DEPENDENCIES) $(EXTRA_prog1_DEPENDENCIES) 
 	@rm -f prog1$(EXEEXT)
